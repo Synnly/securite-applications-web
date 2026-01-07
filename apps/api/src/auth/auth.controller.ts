@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Req, Res, ValidationPipe } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Post,
+    Req,
+    Res,
+    ValidationPipe,
+} from '@nestjs/common';
 import express from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from '../user/dto/login.dto';
@@ -18,8 +25,13 @@ export class AuthController {
         private readonly authService: AuthService,
         private readonly configService: ConfigService,
     ) {
-        const lifespan = this.configService.get<number>('REFRESH_TOKEN_LIFESPAN_MINUTES');
-        if (!lifespan) throw new InvalidConfigurationException('Refresh token lifespan is not configured');
+        const lifespan = this.configService.get<number>(
+            'REFRESH_TOKEN_LIFESPAN_MINUTES',
+        );
+        if (!lifespan)
+            throw new InvalidConfigurationException(
+                'Refresh token lifespan is not configured',
+            );
 
         this.COOKIE_LIFESPAN = lifespan * 60 * 1000;
     }
@@ -35,11 +47,20 @@ export class AuthController {
      */
     @Post('login')
     async login(
-        @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+        @Body(
+            new ValidationPipe({
+                whitelist: true,
+                forbidNonWhitelisted: true,
+                transform: true,
+            }),
+        )
         dto: LoginDto,
         @Res({ passthrough: true }) res: express.Response,
     ): Promise<string> {
-        const { access, refresh } = await this.authService.login(dto.email, dto.password);
+        const { access, refresh } = await this.authService.login(
+            dto.username,
+            dto.password,
+        );
 
         res.cookie('refreshToken', refresh, {
             httpOnly: true,

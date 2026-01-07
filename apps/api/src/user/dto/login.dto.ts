@@ -9,7 +9,7 @@ export class LoginDto {
      * User's username for authentication
      */
     @IsNotEmpty()
-    email: string;
+    username: string;
 
     /**
      * User's password for authentication

@@ -1,8 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { CallbackWithoutResultAndOptionalError } from "mongoose";
-import {Role} from "../common/roles/roles.enum";
+import { Role } from '../common/roles/roles.enum';
 
 export type UserDocument = User & Document;
 
@@ -57,15 +56,15 @@ export const UserSchema = SchemaFactory.createForClass(User);
  *
  * @throws Passes any bcrypt errors to the next middleware
  */
-UserSchema.pre('save', async function (next: CallbackWithoutResultAndOptionalError) {
+UserSchema.pre('save', async function () {
     // Skip if password hasn't been modified
     if (!this.isModified('password')) {
-        return next();
+        return;
     }
 
     // Safety check: verify password exists and is not empty or whitespace before attempting to hash
     if (!this.password || this.password.trim().length === 0) {
-        return next(new Error('Password cannot be empty'));
+        throw new Error('Password cannot be empty');
     }
 
     try {
@@ -73,8 +72,7 @@ UserSchema.pre('save', async function (next: CallbackWithoutResultAndOptionalErr
         const salt = await bcrypt.genSalt(10);
         // Hash the password and replace it in the document
         this.password = await bcrypt.hash(this.password, salt);
-        next();
     } catch (error) {
-        next(error);
+        throw error;
     }
 });

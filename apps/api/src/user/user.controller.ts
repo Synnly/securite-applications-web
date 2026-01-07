@@ -1,5 +1,6 @@
 import {
-    Body, ConflictException,
+    Body,
+    ConflictException,
     Controller,
     Get,
     HttpCode,
@@ -7,13 +8,13 @@ import {
     NotFoundException,
     Param,
     Post,
-    ValidationPipe
+    ValidationPipe,
 } from '@nestjs/common';
-import {UserService} from "./user.service";
+import { UserService } from './user.service';
 import { plainToInstance } from 'class-transformer';
-import {UserDto} from "./dto/user.dto";
-import {ParseObjectIdPipe} from "@nestjs/mongoose";
-import {CreateUserDto} from "./dto/createUser.dto";
+import { UserDto } from './dto/user.dto';
+import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Controller('user')
 export class UserController {
@@ -43,9 +44,12 @@ export class UserController {
      */
     @Get(':userId')
     @HttpCode(HttpStatus.OK)
-    async findOne(@Param('userId', ParseObjectIdPipe) userId: string): Promise<UserDto> {
+    async findOne(
+        @Param('userId', ParseObjectIdPipe) userId: string,
+    ): Promise<UserDto> {
         const user = await this.userService.findOne(userId);
-        if (!user) throw new NotFoundException(`User with id ${userId} not found`);
+        if (!user)
+            throw new NotFoundException(`User with id ${userId} not found`);
         return plainToInstance(UserDto, user, {
             excludeExtraneousValues: true,
         });
@@ -58,14 +62,22 @@ export class UserController {
     @Post()
     @HttpCode(HttpStatus.CREATED)
     async create(
-        @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+        @Body(
+            new ValidationPipe({
+                whitelist: true,
+                forbidNonWhitelisted: true,
+                transform: true,
+            }),
+        )
         dto: CreateUserDto,
     ) {
         try {
             await this.userService.create(dto);
         } catch (error) {
             if (error.code === 11000) {
-                throw new ConflictException(`User with email ${dto.username} already exists`);
+                throw new ConflictException(
+                    `User with email ${dto.username} already exists`,
+                );
             } else {
                 throw error;
             }
