@@ -1,0 +1,7 @@
+import type {Role} from "./role.type.ts";
+
+export type User = {
+    _id: string;
+    email: string;
+    role: Role;
+}

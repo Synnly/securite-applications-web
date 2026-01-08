@@ -55,6 +55,11 @@ async function bootstrap() {
         credentials: true,
     });
 
+    console.debug(
+        'CORS enabled for:',
+        process.env.FRONTEND_URL || 'http://localhost:5173',
+    );
+
     app.use(cookieParser());
 
     app.use(doubleCsrfProtection);
