@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { doubleCsrf } from 'csrf-csrf';
+import helmet from 'helmet';
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import path from 'path';
@@ -13,6 +14,17 @@ async function bootstrap() {
     };
 
     const app = await NestFactory.create(AppModule, { httpsOptions });
+
+    app.use(
+        helmet({
+            contentSecurityPolicy: {
+                useDefaults: true,
+                directives: {
+                    requireTrustedTypesFor: ["'script'"],
+                },
+            },
+        }),
+    );
 
     const { doubleCsrfProtection } = doubleCsrf({
         getSecret: () =>
@@ -30,10 +42,12 @@ async function bootstrap() {
             sameSite: 'lax',
             path: '/',
             secure: true,
+            httpOnly: true,
         },
         size: 64,
         ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
-        getCsrfTokenFromRequest: (req: any) => req.headers['x-csrf-token'],
+        getCsrfTokenFromRequest: (req: any) =>
+            req.cookies?.['__Host-psifi.x-csrf-token'],
     });
 
     app.enableCors({
