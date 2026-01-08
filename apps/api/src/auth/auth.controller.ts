@@ -58,7 +58,7 @@ export class AuthController {
         @Res({ passthrough: true }) res: express.Response,
     ): Promise<string> {
         const { access, refresh } = await this.authService.login(
-            dto.username,
+            dto.email,
             dto.password,
         );
 

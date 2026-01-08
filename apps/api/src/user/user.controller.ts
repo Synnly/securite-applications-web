@@ -76,7 +76,7 @@ export class UserController {
         } catch (error) {
             if (error.code === 11000) {
                 throw new ConflictException(
-                    `User with email ${dto.username} already exists`,
+                    `User with email ${dto.email} already exists`,
                 );
             } else {
                 throw error;

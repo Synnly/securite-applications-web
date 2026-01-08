@@ -13,7 +13,7 @@ describe('UserService', () => {
 
     const mockUser = {
         _id: userId,
-        username: 'testuser',
+        email: 'testuser',
         role: Role.USER,
         password: 'hashedpassword',
     };
@@ -118,7 +118,7 @@ describe('UserService', () => {
     describe('create', () => {
         it('should create a new user successfully', async () => {
             const createUserDto: CreateUserDto = {
-                username: 'newuser',
+                email: 'newuser',
                 password: 'password123',
                 role: Role.USER,
             };
@@ -135,7 +135,7 @@ describe('UserService', () => {
 
         it('should propagate error if database creation fails', async () => {
             const createUserDto: CreateUserDto = {
-                username: 'erroruser',
+                email: 'erroruser',
                 password: 'password123',
                 role: Role.USER,
             };

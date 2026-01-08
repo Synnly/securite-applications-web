@@ -13,10 +13,10 @@ export class User {
     _id: Types.ObjectId;
 
     /**
-     * User's username
+     * User's email
      */
     @Prop({ required: true, unique: true })
-    username: string;
+    email: string;
 
     /**
      * User's hashed password

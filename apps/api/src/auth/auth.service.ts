@@ -2,7 +2,12 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { AccessTokenPayload, RefreshToken, RefreshTokenDocument, RefreshTokenPayload } from './refreshToken.schema';
+import {
+    AccessTokenPayload,
+    RefreshToken,
+    RefreshTokenDocument,
+    RefreshTokenPayload,
+} from './refreshToken.schema';
 import { Role } from '../common/roles/roles.enum';
 import { InvalidCredentialsException } from '../common/exceptions/invalidCredentials.exception';
 import { JwtService } from '@nestjs/jwt';
@@ -29,38 +34,56 @@ export class AuthService {
      * @throws {InvalidConfigurationException} If any required configuration is missing.
      */
     constructor(
-        @InjectModel(RefreshToken.name) private readonly refreshTokenModel: Model<RefreshTokenDocument>,
+        @InjectModel(RefreshToken.name)
+        private readonly refreshTokenModel: Model<RefreshTokenDocument>,
         @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
         private readonly jwtService: JwtService, // For access tokens
-        @Inject('REFRESH_JWT_SERVICE') private readonly refreshJwtService: JwtService, // For refresh tokens
+        @Inject('REFRESH_JWT_SERVICE')
+        private readonly refreshJwtService: JwtService, // For refresh tokens
         private readonly configService: ConfigService,
     ) {
         let lifespan: number | undefined;
 
         // Load refresh token lifespan
-        lifespan = this.configService.get<number>('REFRESH_TOKEN_LIFESPAN_MINUTES');
-        if (!lifespan) throw new InvalidConfigurationException('Refresh token lifespan is not configured');
+        lifespan = this.configService.get<number>(
+            'REFRESH_TOKEN_LIFESPAN_MINUTES',
+        );
+        if (!lifespan)
+            throw new InvalidConfigurationException(
+                'Refresh token lifespan is not configured',
+            );
         this.REFRESH_TOKEN_LIFESPAN = lifespan;
     }
 
     /**
      * Generates access and refresh tokens for the user
-     * @param username The username of the user attempting to log in.
+     * @param email The email of the user attempting to log in.
      * @param password The password of the user.
      * @returns A Promise that resolves to an object containing the access and refresh tokens.
-     * @throws {NotFoundException} If the user with the specified username is not found.
+     * @throws {NotFoundException} If the user with the specified email is not found.
      * @throws {InvalidCredentialsException} If the provided credentials are invalid.
      */
-    async login(username: string, password: string): Promise<{ access: string; refresh: string }> {
-        const user = await this.userModel.findOne({ username: username });
-        if (!user) throw new NotFoundException(`User with username ${username} not found`);
+    async login(
+        email: string,
+        password: string,
+    ): Promise<{ access: string; refresh: string }> {
+        const user = await this.userModel.findOne({ email: email });
+        if (!user)
+            throw new NotFoundException(`User with email ${email} not found`);
 
         if (!(await bcrypt.compare(password, user.password))) {
-            throw new InvalidCredentialsException('Invalid username or password');
+            throw new InvalidCredentialsException('Invalid email or password');
         }
         // Generating tokens
-        const { token, rti } = await this.generateRefreshToken(user._id, user.role);
-        const accessToken = await this.generateAccessToken(user._id, user.username, rti);
+        const { token, rti } = await this.generateRefreshToken(
+            user._id,
+            user.role,
+        );
+        const accessToken = await this.generateAccessToken(
+            user._id,
+            user.email,
+            rti,
+        );
 
         return { access: accessToken, refresh: token };
     }
@@ -79,18 +102,25 @@ export class AuthService {
     /**
      * Generates a JWT access token for the specified user. Deletes the associated refresh token if it is expired.
      * @param userId The ID of the user for whom the token is generated.
-     * @param username The username of the user.
+     * @param email The email of the user.
      * @param role The role of the user.
      * @param rti The refresh token ID associated with this access token.
      * @returns A Promise that resolves to the generated JWT access token as a string.
      * @throws {InvalidCredentialsException} If the provided refresh token is invalid, expired or does not belong to the user.
      */
-    private async generateAccessToken(userId: Types.ObjectId, username: string, rti: Types.ObjectId): Promise<string> {
+    private async generateAccessToken(
+        userId: Types.ObjectId,
+        email: string,
+        rti: Types.ObjectId,
+    ): Promise<string> {
         // Validate the refresh token existence and validity
         const refreshToken = await this.refreshTokenModel.findById(rti);
-        if (!refreshToken) throw new InvalidCredentialsException('Refresh token not found');
+        if (!refreshToken)
+            throw new InvalidCredentialsException('Refresh token not found');
         if (!refreshToken.userId.equals(userId)) {
-            throw new InvalidCredentialsException('Refresh token does not belong to the user');
+            throw new InvalidCredentialsException(
+                'Refresh token does not belong to the user',
+            );
         }
         if (refreshToken.expiresAt < new Date()) {
             await this.refreshTokenModel.deleteOne({ _id: rti });
@@ -105,8 +135,8 @@ export class AuthService {
         const accessTokenPayload: AccessTokenPayload = {
             sub: userId,
             role: user.role,
-            username: username,
-            rti: rti
+            email: email,
+            rti: rti,
         };
 
         return this.jwtService.signAsync(accessTokenPayload);
@@ -123,7 +153,9 @@ export class AuthService {
         userId: Types.ObjectId,
         role: Role,
     ): Promise<{ token: string; rti: Types.ObjectId }> {
-        const refreshTokenExpiryDate = await this.computeExpiryDate(this.REFRESH_TOKEN_LIFESPAN);
+        const refreshTokenExpiryDate = await this.computeExpiryDate(
+            this.REFRESH_TOKEN_LIFESPAN,
+        );
 
         const refreshToken = await this.refreshTokenModel.create({
             userId: userId,
@@ -150,7 +182,8 @@ export class AuthService {
      * @throws {InvalidCredentialsException} If the refresh token is invalid or has expired.
      */
     async refreshAccessToken(refreshTokenString: string): Promise<string> {
-        if (!refreshTokenString) throw new InvalidCredentialsException('Refresh token not provided');
+        if (!refreshTokenString)
+            throw new InvalidCredentialsException('Refresh token not provided');
 
         try {
             if (!this.refreshJwtService.verify(refreshTokenString)) {
@@ -160,10 +193,14 @@ export class AuthService {
             throw new InvalidCredentialsException('Invalid refresh token');
         }
 
-        const decodesRefreshToken = this.refreshJwtService.decode(refreshTokenString);
-        const refreshToken = await this.refreshTokenModel.findOne({ _id: decodesRefreshToken._id });
+        const decodesRefreshToken =
+            this.refreshJwtService.decode(refreshTokenString);
+        const refreshToken = await this.refreshTokenModel.findOne({
+            _id: decodesRefreshToken._id,
+        });
 
-        if (!refreshToken) throw new InvalidCredentialsException('Refresh token not found');
+        if (!refreshToken)
+            throw new InvalidCredentialsException('Refresh token not found');
 
         if (refreshToken.expiresAt < new Date()) {
             await this.refreshTokenModel.deleteOne({ _id: refreshToken._id });
@@ -171,14 +208,19 @@ export class AuthService {
         }
 
         const user = await this.userModel.findById(refreshToken.userId);
-        if (!user) throw new InvalidCredentialsException('User not found for the provided refresh token');
+        if (!user)
+            throw new InvalidCredentialsException(
+                'User not found for the provided refresh token',
+            );
 
         // Validate that the role in the refresh token matches the user's current role
         if (refreshToken.role !== user.role) {
-            throw new InvalidCredentialsException('User role has changed since refresh token was issued');
+            throw new InvalidCredentialsException(
+                'User role has changed since refresh token was issued',
+            );
         }
 
-        return this.generateAccessToken(user._id, user.username, refreshToken._id);
+        return this.generateAccessToken(user._id, user.email, refreshToken._id);
     }
 
     /**

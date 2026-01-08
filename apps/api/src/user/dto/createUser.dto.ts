@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsEnum, IsStrongPassword } from 'class-validator';
+import { IsNotEmpty, IsEnum, IsStrongPassword, IsEmail } from 'class-validator';
 import { Role } from '../../common/roles/roles.enum';
 
 /**
@@ -6,10 +6,11 @@ import { Role } from '../../common/roles/roles.enum';
  */
 export class CreateUserDto {
     /**
-     * User's username
+     * User's email
      */
     @IsNotEmpty()
-    username: string;
+    @IsEmail()
+    email: string;
 
     /**
      * User's password for authentication
@@ -18,7 +19,13 @@ export class CreateUserDto {
      * via the User schema pre-save hook.
      */
     @IsNotEmpty()
-    @IsStrongPassword({ minLength: 8, minUppercase: 1, minLowercase: 1, minNumbers: 1, minSymbols: 1 })
+    @IsStrongPassword({
+        minLength: 8,
+        minUppercase: 1,
+        minLowercase: 1,
+        minNumbers: 1,
+        minSymbols: 1,
+    })
     password: string;
 
     /**

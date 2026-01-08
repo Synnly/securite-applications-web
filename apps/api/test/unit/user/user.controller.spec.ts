@@ -15,7 +15,7 @@ describe('UserController', () => {
     const userId = new Types.ObjectId('507f1f77bcf86cd799439011');
     const mockUser = {
         _id: userId,
-        username: 'test@example.com',
+        email: 'test@example.com',
         role: Role.USER,
         password: 'hashedpassword',
     };
@@ -61,7 +61,7 @@ describe('UserController', () => {
             // plainToInstance transforme les objets, on vérifie que les données principales sont là
             expect(result[0]).toEqual(
                 expect.objectContaining({
-                    username: 'test@example.com',
+                    email: 'test@example.com',
                 }),
             );
 
@@ -87,7 +87,7 @@ describe('UserController', () => {
             expect(result).toBeDefined();
             expect(result).toEqual(
                 expect.objectContaining({
-                    username: 'test@example.com',
+                    email: 'test@example.com',
                 }),
             );
             expect(mockUserService.findOne).toHaveBeenCalledWith(
@@ -107,7 +107,7 @@ describe('UserController', () => {
 
     describe('create', () => {
         const createUserDto: CreateUserDto = {
-            username: 'newuser@example.com',
+            email: 'newuser@example.com',
             password: 'password123',
             role: Role.USER,
         };
@@ -132,7 +132,7 @@ describe('UserController', () => {
 
             // Vérification optionnelle du message
             await expect(controller.create(createUserDto)).rejects.toThrow(
-                `User with email ${createUserDto.username} already exists`,
+                `User with email ${createUserDto.email} already exists`,
             );
         });
 

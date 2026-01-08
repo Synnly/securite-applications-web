@@ -88,7 +88,7 @@ describe('AuthController', () => {
 
     describe('login', () => {
         const VALID_LOGIN_DTO: LoginDto = {
-            username: 'test@example.com',
+            email: 'test@example.com',
             password: 'password123',
         };
 
@@ -134,11 +134,11 @@ describe('AuthController', () => {
         it('should throw NotFoundException when company is not found and login is called', async () => {
             const loginDto: LoginDto = {
                 ...VALID_LOGIN_DTO,
-                username: 'notfound@example.com',
+                email: 'notfound@example.com',
             };
             mockAuthService.login.mockRejectedValue(
                 new NotFoundException(
-                    'Company with username notfound@example.com not found',
+                    'Company with email notfound@example.com not found',
                 ),
             );
             const mockRes = createMockResponse();

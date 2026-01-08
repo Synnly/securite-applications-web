@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
 /**
  * Data Transfer Object for user authentication
@@ -6,10 +6,11 @@ import { IsNotEmpty } from 'class-validator';
  */
 export class LoginDto {
     /**
-     * User's username for authentication
+     * User's email for authentication
      */
     @IsNotEmpty()
-    username: string;
+    @IsEmail()
+    email: string;
 
     /**
      * User's password for authentication
