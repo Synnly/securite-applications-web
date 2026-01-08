@@ -34,7 +34,18 @@ configurer en fonction de la VM.
    
 3. Configurer les variables d'environnement (voir section "Configuration des environnements" ci-dessous).
 
-4. Build
+4. Placer les fichiers de certificats TLS dans le dossier `apps/api/keys/` :
+   - `key.pem` : Clé privée
+   - `cert.pem` : Certificat public
+   
+   Ces fichiers sont **obligatoires** pour le démarrage du backend.
+
+5. Lancer les tests
+    ```bash
+    npm run test
+    ```
+
+6. Build
    ```bash
    npm run build
    ```

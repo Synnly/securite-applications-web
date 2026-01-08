@@ -9,9 +9,18 @@ import path from 'path';
 import { ConsoleLogger } from '@nestjs/common';
 
 async function bootstrap() {
+    const keyPath = path.join(__dirname, '../keys/key.pem');
+    const certPath = path.join(__dirname, '../keys/cert.pem');
+
+    if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+        throw new Error(
+            `Fichiers TLS manquants. Vérifiez la présence de ${keyPath} et ${certPath}`,
+        );
+    }
+
     const httpsOptions = {
-        key: fs.readFileSync(path.join(__dirname, '../keys/key.pem')),
-        cert: fs.readFileSync(path.join(__dirname, '../keys/cert.pem')),
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath),
     };
 
     const logger = new ConsoleLogger({
