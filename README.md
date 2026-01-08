@@ -70,6 +70,7 @@ configurer en fonction de la VM.
    ```
 
 ## Configuration des environnements
+Les variables d'environnement doivent être configurées dans des fichiers `.env` placés à la racine des dossiers `apps/api` et `apps/client`.
 ### Backend
 1. `DATABASE_URL` : URL de connexion à la base de données MongoDB (ex: mongodb://localhost:27017/ma_base)
 2. `FRONTEND_URL` : URL de l'application frontend (ex: http://localhost:8080). Nécessaire pour la configuration CORS.
