@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import path from 'path';
+import { ConsoleLogger } from '@nestjs/common';
 
 async function bootstrap() {
     const httpsOptions = {
@@ -13,7 +14,17 @@ async function bootstrap() {
         cert: fs.readFileSync(path.join(__dirname, '../keys/cert.pem')),
     };
 
-    const app = await NestFactory.create(AppModule, { httpsOptions });
+    const logger = new ConsoleLogger({
+        json: true,
+        timestamp: true,
+        colors: true,
+        logLevels: ['log', 'error', 'warn'],
+    });
+
+    const app = await NestFactory.create(AppModule, {
+        httpsOptions,
+        logger: logger,
+    });
 
     app.use(
         helmet({
@@ -55,9 +66,9 @@ async function bootstrap() {
         credentials: true,
     });
 
-    console.debug(
-        'CORS enabled for:',
-        process.env.FRONTEND_URL || 'http://localhost:5173',
+    logger.log(
+        `CORS enabled for : ${process.env.FRONTEND_URL || 'http://localhost:5173'}`,
+        'InstanceLoader',
     );
 
     app.use(cookieParser());
