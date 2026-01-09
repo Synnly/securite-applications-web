@@ -28,6 +28,12 @@ export class Post {
      */
     @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
     author: User;
+
+    /**
+     * Timestamp for soft deletion
+     */
+    @Prop()
+    deletedAt?: Date;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

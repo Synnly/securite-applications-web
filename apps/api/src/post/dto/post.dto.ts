@@ -7,7 +7,7 @@ export class PostDto {
      */
     @Transform((params) => params.obj._id)
     @Expose()
-    id: number;
+    id: string;
 
     /**
      * Title of the post

@@ -13,20 +13,26 @@ export class PostService {
     ) {}
 
     /**
-     * Finds all posts in the database.
+     * Finds all active posts in the database.
      * @returns A promise that resolves to an array of Post documents.
      */
     async findAll(): Promise<PostDocument[]> {
-        return this.postModel.find().populate('author', '_id email').exec();
+        return this.postModel
+            .find({ deletedAt: null })
+            .populate('author', '_id email')
+            .exec();
     }
 
     /**
-     * Finds a single post by its ID.
+     * Finds a single active post by its ID.
      * @param id The ID of the post to find.
      * @returns A promise that resolves to the Post document or null if not found.
      */
     async findOneById(id: string): Promise<PostDocument | null> {
-        return this.postModel.findById(id).exec();
+        return this.postModel
+            .findOne({ _id: id, deletedAt: null })
+            .populate('author', '_id email')
+            .exec();
     }
 
     /**
@@ -49,11 +55,13 @@ export class PostService {
     }
 
     /**
-     * Deletes a post by its ID.
+     * Soft deletes a post by its ID.
      * @param id The ID of the post to delete.
      * @returns A promise that resolves when the post is deleted.
      */
     async deleteById(id: string): Promise<void> {
-        await this.postModel.findByIdAndDelete(id).exec();
+        await this.postModel
+            .findByIdAndUpdate(id, { deletedAt: new Date() })
+            .exec();
     }
 }
