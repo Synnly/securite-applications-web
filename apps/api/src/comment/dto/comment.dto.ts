@@ -7,7 +7,7 @@ export class CommentDto {
      */
     @Transform((params) => params.obj._id)
     @Expose()
-    id: number;
+    id: string;
 
     /**
      * Text content of the comment
