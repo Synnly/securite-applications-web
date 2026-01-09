@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import type { User } from './user.type.ts';
 
 export type Post = {
-    _id: string;
+    id: string;
     title: string;
     body: string;
-    author: string;
+    author: User;
     createdAt: string;
 };
 

@@ -11,6 +11,7 @@ export const AllPostsPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { isLoading } = UseFetchPosts();
     const data = postStore((state) => state.posts);
+    console.log(data);
 
     return (
         <>
@@ -20,9 +21,10 @@ export const AllPostsPage = () => {
             ) : (
                 <>
                     <div className="flex flex-col w-full px-60 py-10 gap-3">
-                        {data!.map((post: Post) => (
-                            <PostCard post={post} key={post._id} />
-                        ))}
+                        {data &&
+                            data.map((post: Post) => (
+                                <PostCard key={post.id} post={post} />
+                            ))}
                     </div>
                     <CreatePostModal
                         isOpen={isModalOpen}

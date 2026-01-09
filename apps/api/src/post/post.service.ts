@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Post, PostDocument } from './post.schema';
 import { CreatePostDto } from './dto/createPost.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class PostService {
     constructor(
         @InjectModel(Post.name) private readonly postModel: Model<PostDocument>,
+        private readonly userService: UserService,
     ) {}
 
     /**
@@ -15,7 +17,7 @@ export class PostService {
      * @returns A promise that resolves to an array of Post documents.
      */
     async findAll(): Promise<PostDocument[]> {
-        return this.postModel.find().exec();
+        return this.postModel.find().populate('author', '_id email').exec();
     }
 
     /**
@@ -34,9 +36,14 @@ export class PostService {
      * @returns A promise that resolves when the post is created.
      */
     async create(dto: CreatePostDto, authorId: string): Promise<void> {
+        const author = await this.userService.findOne(authorId);
+        if (!author) {
+            throw new NotFoundException(`No user found with id ${authorId}`);
+        }
+
         const post = new this.postModel({
             ...dto,
-            author: authorId,
+            author: author._id,
         });
         await post.save();
     }

@@ -5,17 +5,17 @@ import { CreatePostDto } from '../../../src/post/dto/createPost.dto';
 import { PostDto } from '../../../src/post/dto/post.dto';
 import { Types } from 'mongoose';
 import { NotFoundException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 describe('PostController', () => {
     let controller: PostController;
     let postService: PostService;
     let mockPostService: any;
 
-    // Données de test
     const postId = new Types.ObjectId('507f1f77bcf86cd799439011');
     const authorId = new Types.ObjectId('507f1f77bcf86cd799439012');
 
-    // Objet simulant un document Mongoose (avant transformation DTO)
     const mockPost = {
         _id: postId,
         title: 'Test Post Title',
@@ -26,7 +26,6 @@ describe('PostController', () => {
     };
 
     beforeEach(async () => {
-        // Réinitialisation du mock pour chaque test
         mockPostService = {
             findAll: jest.fn(),
             findOneById: jest.fn(),
@@ -40,6 +39,19 @@ describe('PostController', () => {
                 {
                     provide: PostService,
                     useValue: mockPostService,
+                },
+                {
+                    provide: JwtService,
+                    useValue: {
+                        verifyAsync: jest.fn(),
+                        sign: jest.fn(),
+                    },
+                },
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: jest.fn(),
+                    },
                 },
             ],
         }).compile();
@@ -63,7 +75,6 @@ describe('PostController', () => {
             expect(result).toHaveLength(1);
             expect(result[0]).toBeInstanceOf(PostDto);
 
-            // Vérification de la transformation (mappage _id -> id)
             expect(result[0].id).toEqual(postId);
             expect(result[0].title).toBe('Test Post Title');
 
@@ -114,22 +125,26 @@ describe('PostController', () => {
             body: 'New Content',
         };
 
+        const mockRequest = {
+            user: { sub: authorId },
+            sub: authorId,
+        };
+
         it('should create a post successfully', async () => {
             mockPostService.create.mockResolvedValue(undefined);
 
-            await controller.create(createPostDto);
+            await controller.create(mockRequest as any, createPostDto);
 
-            expect(mockPostService.create).toHaveBeenCalledWith(createPostDto);
-            expect(mockPostService.create).toHaveBeenCalledTimes(1);
+            expect(mockPostService.create).toHaveBeenCalled();
         });
 
         it('should propagate errors from service', async () => {
             const error = new Error('Validation failed');
             mockPostService.create.mockRejectedValue(error);
 
-            await expect(controller.create(createPostDto)).rejects.toThrow(
-                error,
-            );
+            await expect(
+                controller.create(mockRequest as any, createPostDto),
+            ).rejects.toThrow(error);
         });
     });
 

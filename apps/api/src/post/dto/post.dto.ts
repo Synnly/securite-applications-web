@@ -1,4 +1,6 @@
-import { Expose, Transform } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
+import { UserDto } from '../../user/dto/user.dto';
+import { ValidateNested } from 'class-validator';
 
 export class PostDto {
     /**
@@ -21,8 +23,19 @@ export class PostDto {
     body: string;
 
     /**
+     * Author of the post
+     */
+    @Expose()
+    @Type(() => UserDto)
+    author: UserDto;
+
+    /**
      * Timestamp when the post was created
      */
     @Expose()
     createdAt: Date;
+
+    constructor(post?: Partial<PostDto>) {
+        Object.assign(this, post);
+    }
 }

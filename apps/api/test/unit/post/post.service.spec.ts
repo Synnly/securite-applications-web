@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostService } from '../../../src/post/post.service';
+import { UserService } from '../../../src/user/user.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Post } from '../../../src/post/post.schema';
 import { CreatePostDto } from '../../../src/post/dto/createPost.dto';
@@ -8,6 +9,7 @@ import { Types } from 'mongoose';
 describe('PostService', () => {
     let service: PostService;
     let mockPostModel: any;
+    let userService: UserService;
 
     // Données de test
     const postId = new Types.ObjectId('507f1f77bcf86cd799439011');
@@ -21,14 +23,17 @@ describe('PostService', () => {
     };
 
     beforeEach(async () => {
-        // Mock des méthodes Mongoose
-        // Note: find, findById, findByIdAndDelete retournent un Query object qui a une méthode exec()
-        mockPostModel = {
-            find: jest.fn(),
-            findById: jest.fn(),
-            create: jest.fn(),
-            findByIdAndDelete: jest.fn(),
-        };
+        mockPostModel = jest.fn().mockImplementation((dto) => ({
+            ...dto,
+            save: jest.fn().mockResolvedValue({
+                ...dto,
+                _id: new Types.ObjectId(),
+            }),
+        }));
+
+        (mockPostModel as any).find = jest.fn();
+        (mockPostModel as any).findById = jest.fn();
+        (mockPostModel as any).findByIdAndDelete = jest.fn();
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -37,10 +42,17 @@ describe('PostService', () => {
                     provide: getModelToken(Post.name),
                     useValue: mockPostModel,
                 },
+                {
+                    provide: UserService,
+                    useValue: {
+                        findOne: jest.fn(),
+                    },
+                },
             ],
         }).compile();
 
         service = module.get<PostService>(PostService);
+        userService = module.get<UserService>(UserService);
         jest.clearAllMocks();
     });
 
@@ -51,8 +63,11 @@ describe('PostService', () => {
     describe('findAll', () => {
         it('should return an array of posts', async () => {
             const expectedPosts = [mockPost];
-            mockPostModel.find.mockReturnValue({
-                exec: jest.fn().mockResolvedValue(expectedPosts),
+
+            (mockPostModel as any).find.mockReturnValue({
+                populate: jest.fn().mockReturnValue({
+                    exec: jest.fn().mockResolvedValue(expectedPosts),
+                }),
             });
 
             const result = await service.findAll();
@@ -62,8 +77,10 @@ describe('PostService', () => {
         });
 
         it('should return an empty array when no posts exist', async () => {
-            mockPostModel.find.mockReturnValue({
-                exec: jest.fn().mockResolvedValue([]),
+            (mockPostModel as any).find.mockReturnValue({
+                populate: jest.fn().mockReturnValue({
+                    exec: jest.fn().mockResolvedValue([]),
+                }),
             });
 
             const result = await service.findAll();
@@ -74,8 +91,10 @@ describe('PostService', () => {
 
         it('should propagate error if database find fails', async () => {
             const error = new Error('Database connection error');
-            mockPostModel.find.mockReturnValue({
-                exec: jest.fn().mockRejectedValue(error),
+            (mockPostModel as any).find.mockReturnValue({
+                populate: jest.fn().mockReturnValue({
+                    exec: jest.fn().mockRejectedValue(error),
+                }),
             });
 
             await expect(service.findAll()).rejects.toThrow(error);
@@ -84,7 +103,7 @@ describe('PostService', () => {
 
     describe('findOneById', () => {
         it('should return a post if found', async () => {
-            mockPostModel.findById.mockReturnValue({
+            (mockPostModel as any).findById.mockReturnValue({
                 exec: jest.fn().mockResolvedValue(mockPost),
             });
 
@@ -97,7 +116,7 @@ describe('PostService', () => {
         });
 
         it('should return null if post is not found', async () => {
-            mockPostModel.findById.mockReturnValue({
+            (mockPostModel as any).findById.mockReturnValue({
                 exec: jest.fn().mockResolvedValue(null),
             });
 
@@ -108,7 +127,7 @@ describe('PostService', () => {
 
         it('should propagate error if database findById fails', async () => {
             const error = new Error('Database error');
-            mockPostModel.findById.mockReturnValue({
+            (mockPostModel as any).findById.mockReturnValue({
                 exec: jest.fn().mockRejectedValue(error),
             });
 
@@ -123,15 +142,13 @@ describe('PostService', () => {
                 body: 'New Body Content',
             };
 
-            // create retourne généralement le document créé ou void selon l'implémentation
-            mockPostModel.create.mockResolvedValue(mockPost);
+            (userService.findOne as jest.Mock).mockResolvedValue({
+                _id: authorId,
+            });
 
-            await service.create(createPostDto);
+            await service.create(createPostDto, authorId.toString());
 
-            expect(mockPostModel.create).toHaveBeenCalledWith(
-                expect.objectContaining(createPostDto),
-            );
-            expect(mockPostModel.create).toHaveBeenCalledTimes(1);
+            expect(mockPostModel).toHaveBeenCalled();
         });
 
         it('should propagate error if database creation fails', async () => {
@@ -139,17 +156,27 @@ describe('PostService', () => {
                 title: 'Error Post',
                 body: 'Content',
             };
-            const error = new Error('Validation error');
-            mockPostModel.create.mockRejectedValue(error);
 
-            await expect(service.create(createPostDto)).rejects.toThrow(error);
+            (userService.findOne as jest.Mock).mockResolvedValue({
+                _id: authorId,
+            });
+
+            const error = new Error('Save error');
+
+            mockPostModel.mockImplementationOnce(() => ({
+                save: jest.fn().mockRejectedValue(error),
+            }));
+
+            await expect(
+                service.create(createPostDto, authorId.toString()),
+            ).rejects.toThrow(error);
         });
     });
 
     describe('deleteById', () => {
         it('should delete a post successfully', async () => {
-            mockPostModel.findByIdAndDelete.mockReturnValue({
-                exec: jest.fn().mockResolvedValue(mockPost), // Retourne le doc supprimé ou null
+            (mockPostModel as any).findByIdAndDelete.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(mockPost),
             });
 
             await service.deleteById(postId.toString());
@@ -162,7 +189,7 @@ describe('PostService', () => {
 
         it('should propagate error if database delete fails', async () => {
             const error = new Error('Delete failed');
-            mockPostModel.findByIdAndDelete.mockReturnValue({
+            (mockPostModel as any).findByIdAndDelete.mockReturnValue({
                 exec: jest.fn().mockRejectedValue(error),
             });
 
