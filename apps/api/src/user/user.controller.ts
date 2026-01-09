@@ -8,6 +8,7 @@ import {
     NotFoundException,
     Param,
     Post,
+    UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -15,6 +16,10 @@ import { plainToInstance } from 'class-transformer';
 import { UserDto } from './dto/user.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { CreateUserDto } from './dto/createUser.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../common/roles/roles.guard';
+import { Role } from '../common/roles/roles.enum';
+import { Roles } from '../common/roles/roles.decorator';
 
 @Controller('user')
 export class UserController {
@@ -24,6 +29,8 @@ export class UserController {
      * Retrieves all companies
      * @returns An array of all companies
      */
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Get()
     @HttpCode(HttpStatus.OK)
     async findAll(): Promise<UserDto[]> {
@@ -42,6 +49,8 @@ export class UserController {
      * @returns The user with the specified ID
      * @throws {NotFoundException} if no user exists with the given ID
      */
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Get(':userId')
     @HttpCode(HttpStatus.OK)
     async findOne(

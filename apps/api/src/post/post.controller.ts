@@ -19,6 +19,9 @@ import { plainToInstance } from 'class-transformer';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { CreatePostDto } from './dto/createPost.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { Roles } from '../common/roles/roles.decorator';
+import { Role } from '../common/roles/roles.enum';
+import { RolesGuard } from '../common/roles/roles.guard';
 
 @Controller('post')
 export class PostController {
@@ -28,6 +31,7 @@ export class PostController {
      * Retrieves all posts
      * @returns An array of all posts
      */
+    @UseGuards(AuthGuard)
     @Get('all')
     @HttpCode(HttpStatus.OK)
     async findAll(): Promise<PostDto[]> {
@@ -45,6 +49,7 @@ export class PostController {
      * @returns The post with the specified ID
      * @throws {NotFoundException} if no post exists with the given ID
      */
+    @UseGuards(AuthGuard)
     @Get('by-id/:postId')
     @HttpCode(HttpStatus.OK)
     async findOne(
@@ -83,6 +88,8 @@ export class PostController {
         await this.postService.create(dto, id);
     }
 
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Delete(':postId')
     async delete(
         @Param('postId', ParseObjectIdPipe) postId: string,
