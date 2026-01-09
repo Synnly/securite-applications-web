@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { PostModule } from './post/post.module';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { APP_GUARD } from '@nestjs/core';
         }),
         UserModule,
         AuthModule,
+        PostModule,
     ],
     controllers: [],
     providers: [
