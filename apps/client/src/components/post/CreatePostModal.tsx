@@ -44,7 +44,7 @@ export function CreatePostModal({ isOpen, onClose }: Props) {
             onClose();
         },
         onError: (error: Error) => {
-            toast.error(error.message || 'Erreur lors de la création du topic');
+            toast.error(error.message || 'Erreur lors de la création du post');
         },
     });
 

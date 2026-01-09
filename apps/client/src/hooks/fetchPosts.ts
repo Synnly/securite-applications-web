@@ -114,11 +114,4 @@ export async function createPost({ data }: CreatePostPayload) {
             'Erreur lors de la création du post';
         throw new Error(message);
     }
-
-    // Si la réponse est ok
-    if (response.ok) {
-        return null;
-    }
-
-    return await response.json();
 }
