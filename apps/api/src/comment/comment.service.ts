@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CommentDocument } from './comment.schema';
 import { CreateCommentDto } from './dto/createComment.dto';
 import { PostService } from '../post/post.service';
@@ -19,10 +19,15 @@ export class CommentService {
      * Finds all comments by post ID.
      * @param postId The ID of the post
      * @returns A promise that resolves to an array of Comment documents.
+     * @throws NotFoundException if the post does not exist
      */
     async findAllByPostId(postId: string): Promise<CommentDocument[]> {
-        return this.commentModel
-            .find({ postId })
+        const post = await this.postService.findOneById(postId);
+        if (!post)
+            throw new NotFoundException(`Post of id ${postId} not found`);
+
+        return await this.commentModel
+            .find({ post: postId as any })
             .populate('author', '_id email')
             .exec();
     }
@@ -50,8 +55,8 @@ export class CommentService {
 
         const comment = new this.commentModel({
             ...dto,
-            author: user._id,
-            postId: post._id,
+            author: user,
+            post: post,
         });
         await comment.save();
     }

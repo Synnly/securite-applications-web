@@ -23,6 +23,12 @@ export class CommentDto {
     author: UserDto;
 
     /**
+     * Identifier of the post to which this comment belongs
+     */
+    @Expose()
+    postId: string;
+
+    /**
      * Timestamp when the comment was created
      */
     @Expose()

@@ -68,6 +68,8 @@ describe('CommentService', () => {
 
     describe('findAllByPostId', () => {
         it('should return comments for a post', async () => {
+            mockPostService.findOneById.mockResolvedValue({ _id: mockPostId });
+
             const expectedComments = [mockComment];
 
             const mockExec = jest.fn().mockResolvedValue(expectedComments);
@@ -77,14 +79,31 @@ describe('CommentService', () => {
             const result = await service.findAllByPostId(mockPostId);
 
             expect(result).toEqual(expectedComments);
+            expect(mockPostService.findOneById).toHaveBeenCalledWith(
+                mockPostId,
+            );
             expect(mockCommentModel.find).toHaveBeenCalledWith({
-                postId: mockPostId,
+                post: mockPostId,
             });
             expect(mockPopulate).toHaveBeenCalledWith('author', '_id email');
             expect(mockExec).toHaveBeenCalled();
         });
 
+        it('should throw NotFoundException if post for comments listing not found', async () => {
+            mockPostService.findOneById.mockResolvedValue(null);
+
+            await expect(service.findAllByPostId(mockPostId)).rejects.toThrow(
+                NotFoundException,
+            );
+            expect(mockPostService.findOneById).toHaveBeenCalledWith(
+                mockPostId,
+            );
+            expect(mockCommentModel.find).not.toHaveBeenCalled();
+        });
+
         it('should return an empty array when no comments found', async () => {
+            mockPostService.findOneById.mockResolvedValue({ _id: mockPostId });
+
             const mockExec = jest.fn().mockResolvedValue([]);
             const mockPopulate = jest.fn().mockReturnValue({ exec: mockExec });
             mockCommentModel.find.mockReturnValue({ populate: mockPopulate });
@@ -95,6 +114,8 @@ describe('CommentService', () => {
         });
 
         it('should propagate database errors', async () => {
+            mockPostService.findOneById.mockResolvedValue({ _id: mockPostId });
+
             const error = new Error('Database connection error');
             const mockExec = jest.fn().mockRejectedValue(error);
             const mockPopulate = jest.fn().mockReturnValue({ exec: mockExec });
@@ -124,8 +145,8 @@ describe('CommentService', () => {
             expect(mockCommentModel).toHaveBeenCalledWith(
                 expect.objectContaining({
                     ...createDto,
-                    author: mockAuthorId,
-                    postId: mockPostId,
+                    author: { _id: mockAuthorId },
+                    post: { _id: mockPostId },
                 }),
             );
         });
@@ -135,7 +156,6 @@ describe('CommentService', () => {
             mockPostService.findOneById.mockResolvedValue({ _id: mockPostId });
 
             const error = new Error('Database save error');
-            // Override mockimplementation for this specific test to fail save
             mockCommentModel.mockImplementationOnce((dto) => ({
                 ...dto,
                 save: jest.fn().mockRejectedValue(error),

@@ -6,5 +6,5 @@ export class CreateCommentDto {
      */
     @IsString()
     @IsNotEmpty()
-    content: String;
+    text: String;
 }
