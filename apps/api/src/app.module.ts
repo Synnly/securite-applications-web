@@ -7,6 +7,7 @@ import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { PostModule } from './post/post.module';
 import { TokensMiddleware } from './common/middleware/tokens.middleware';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
     imports: [
@@ -31,6 +32,7 @@ import { TokensMiddleware } from './common/middleware/tokens.middleware';
         UserModule,
         AuthModule,
         PostModule,
+        CommentModule,
     ],
     controllers: [],
     providers: [
