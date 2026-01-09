@@ -15,7 +15,7 @@ export default function MainLayout() {
         }
     }, [matches]);
     return (
-        <div className="min-h-screen min-w-screen flex flex-col">
+        <div className="min-h-screen min-w-screen flex flex-col bg-base-100">
             <main className="flex-1">
                 <Outlet />
             </main>

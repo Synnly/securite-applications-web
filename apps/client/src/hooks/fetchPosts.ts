@@ -50,6 +50,55 @@ async function fetchPosts(): Promise<Post[]> {
     return res.json();
 }
 
+export const UseFetchPostById = (id: string) => {
+    const authFetch = UseAuthFetch();
+    const cachedPost = postStore((state) =>
+        state.posts.find((p) => p.id === id),
+    );
+    const addPost = postStore((state) => state.addPost);
+
+    const query = useQuery<Post, Error>({
+        queryKey: ['post', id],
+        queryFn: async () => {
+            return await fetchPostById(id, authFetch);
+        },
+        initialData: cachedPost,
+        staleTime: cachedPost ? 5 * 60 * 1000 : 0,
+        retry: (failureCount, error) => {
+            if (error.message.includes('404')) return false;
+            return failureCount < 3;
+        },
+    });
+
+    useEffect(() => {
+        if (query.data && !cachedPost && query.isSuccess) {
+            addPost(query.data);
+        }
+    }, [query.data, query.isSuccess, cachedPost, addPost]);
+
+    return query;
+};
+
+export async function fetchPostById(
+    id: string,
+    injectedAuthFetch?: any,
+): Promise<Post> {
+    const authFetch = injectedAuthFetch || UseAuthFetch();
+    const res = await authFetch(`${API_URL}/post/${id}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (res.status === 404) {
+        throw new Error('404 Not Found');
+    }
+
+    if (!res.ok) {
+        throw new Error('Erreur lors de la récupération du post');
+    }
+    return res.json();
+}
+
 export async function createPost({ data }: CreatePostPayload) {
     const authFetch = UseAuthFetch();
 

@@ -9,6 +9,7 @@ import { protectedMiddleware } from './modules/middlewares/protectedMiddleware.t
 import { AuthRoutes } from './components/auth/AuthRoutes.tsx';
 import { AllPostsPage } from './pages/AllPostsPage.tsx';
 import { ToastContainer } from 'react-toastify';
+import { PostPage } from './pages/PostPage.tsx';
 
 function App() {
     userStore.persist.rehydrate();
@@ -16,7 +17,6 @@ function App() {
 
     const route = [
         {
-            id: 'root',
             element: <MainLayout />,
             children: [
                 {
@@ -40,6 +40,10 @@ function App() {
                             index: true,
                             path: '/',
                             element: <AllPostsPage />,
+                        },
+                        {
+                            path: '/post/:postId',
+                            element: <PostPage />,
                         },
                     ],
                 },
