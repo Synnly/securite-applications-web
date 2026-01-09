@@ -83,7 +83,7 @@ export class UserController {
         try {
             await this.userService.create(dto);
         } catch (error) {
-            if (error.code === 11000) {
+            if ((error as any).code === 11000) {
                 throw new ConflictException(
                     `User with email ${dto.email} already exists`,
                 );

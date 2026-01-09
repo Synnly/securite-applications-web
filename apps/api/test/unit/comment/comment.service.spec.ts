@@ -129,7 +129,7 @@ describe('CommentService', () => {
 
     describe('create', () => {
         const createDto: CreateCommentDto = {
-            content: 'New Comment',
+            text: 'New Comment',
         };
 
         it('should create a comment successfully', async () => {

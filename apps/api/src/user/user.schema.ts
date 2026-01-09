@@ -30,6 +30,13 @@ export class User {
      */
     @Prop({ required: true, type: String, enum: Role })
     role: Role;
+
+    /**
+     * Timestamp for soft deletion.
+     * If present, the user is considered deleted.
+     */
+    @Prop()
+    deletedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

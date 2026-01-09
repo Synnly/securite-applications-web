@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import {Model} from "mongoose";
-import {User, UserDocument} from "./user.schema";
-import {InjectModel} from "@nestjs/mongoose";
-import {CreateUserDto} from "./dto/createUser.dto";
+import { ConflictException, Injectable } from '@nestjs/common';
+import { Model } from 'mongoose';
+import { User, UserDocument } from './user.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Injectable()
 export class UserService {
-
     constructor(
         @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     ) {}
@@ -25,15 +24,22 @@ export class UserService {
      * @returns A promise that resolves to the User document or null if not found.
      */
     async findOne(id: string): Promise<User | null> {
-        return this.userModel.findOne({ _id: id, deletedAt: { $exists: false } }).exec();
+        return this.userModel
+            .findOne({ _id: id, deletedAt: { $exists: false } })
+            .exec();
     }
 
     /**
      * Creates a new user in the database.
      * @param dto The data transfer object containing user creation data.
      * @returns A promise that resolves when the user is created.
+     * @throws ConflictException if a user with the same email already exists.
      */
     async create(dto: CreateUserDto): Promise<void> {
+        const existingUser = await this.userModel.findOne({ email: dto.email });
+        if (existingUser) {
+            throw new ConflictException('User with this email already exists');
+        }
         await this.userModel.create({ ...dto });
     }
 }
