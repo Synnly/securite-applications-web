@@ -8,6 +8,9 @@ import {
     NotFoundException,
     Param,
     Post,
+    Req,
+    Request,
+    UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
 import { PostService } from './post.service';
@@ -15,6 +18,7 @@ import { PostDto } from './dto/post.dto';
 import { plainToInstance } from 'class-transformer';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { CreatePostDto } from './dto/createPost.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('post')
 export class PostController {
@@ -57,12 +61,15 @@ export class PostController {
 
     /**
      * Creates a new post
+     * @param req
      * @param dto The post data for creation
      * @returns A promise that resolves when the post is created
      */
+    @UseGuards(AuthGuard)
     @Post()
     @HttpCode(HttpStatus.CREATED)
     async create(
+        @Req() req: Request,
         @Body(
             new ValidationPipe({
                 whitelist: true,
@@ -72,7 +79,8 @@ export class PostController {
         )
         dto: CreatePostDto,
     ): Promise<void> {
-        await this.postService.create(dto);
+        const id = (req as any).user.sub;
+        await this.postService.create(dto, id);
     }
 
     @Delete(':postId')

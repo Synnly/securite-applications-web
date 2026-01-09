@@ -30,10 +30,15 @@ export class PostService {
     /**
      * Creates a new post in the database.
      * @param dto The data transfer object containing post creation data.
+     * @param authorId The ID of the author creating the post.
      * @returns A promise that resolves when the post is created.
      */
-    async create(dto: CreatePostDto): Promise<void> {
-        await this.postModel.create({ ...dto });
+    async create(dto: CreatePostDto, authorId: string): Promise<void> {
+        const post = new this.postModel({
+            ...dto,
+            author: authorId,
+        });
+        await post.save();
     }
 
     /**
