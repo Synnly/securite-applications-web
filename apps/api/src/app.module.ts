@@ -1,10 +1,13 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { PostModule } from './post/post.module';
+import { TokensMiddleware } from './common/middleware/tokens.middleware';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
     imports: [
@@ -28,6 +31,8 @@ import { APP_GUARD } from '@nestjs/core';
         }),
         UserModule,
         AuthModule,
+        PostModule,
+        CommentModule,
     ],
     controllers: [],
     providers: [
@@ -37,4 +42,8 @@ import { APP_GUARD } from '@nestjs/core';
         },
     ],
 })
-export class AppModule {}
+export class AppModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(TokensMiddleware).forRoutes('*');
+    }
+}

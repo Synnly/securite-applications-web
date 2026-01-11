@@ -11,4 +11,8 @@ export class UserDto {
 
     @Expose()
     email: string;
+
+    constructor(user?: Partial<UserDto>) {
+        Object.assign(this, user);
+    }
 }

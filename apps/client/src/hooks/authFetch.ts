@@ -52,7 +52,7 @@ export const UseAuthFetch = () => {
             // Handle CSRF token refresh
             if (err instanceof Error && err.message === 'FORBIDDEN') {
                 const csrfRes = await fetch(`${apiUrl}/csrf-token`, {
-                    method: 'POST',
+                    method: 'GET',
                 });
 
                 if (!csrfRes.ok) {
@@ -63,7 +63,7 @@ export const UseAuthFetch = () => {
             }
 
             // Handle access token refresh
-            if (err instanceof Error && err.message === 'UNAUTHORIZED') {
+            else if (err instanceof Error && err.message === 'UNAUTHORIZED') {
                 try {
                     const refreshRes = await fetch(`${apiUrl}/auth/refresh`, {
                         method: 'POST',
@@ -71,8 +71,7 @@ export const UseAuthFetch = () => {
                     });
 
                     if (!refreshRes.ok) {
-                        redirect('/signin');
-                        throw new Error('Redirection vers signin');
+                        return redirect('/signin');
                     }
 
                     // refresh renvoie le token en texte
@@ -82,12 +81,12 @@ export const UseAuthFetch = () => {
                     // Retente la requête initiale avec le nouveau token
                     return await doFetch();
                 } catch (refreshErr) {
-                    redirect('/signin');
-                    throw refreshErr;
+                    return redirect('/signin');
                 }
             }
-
-            throw err;
+            else {
+                throw err;
+            }
         }
     };
 };

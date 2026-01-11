@@ -1,42 +1,63 @@
-import './App.css'
-import {userStore} from "./stores/userStore.ts";
+import './App.css';
+import { userStore } from './stores/userStore.ts';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, redirect, RouterProvider } from 'react-router';
-import MainLayout from "./components/layout/MainLayout.tsx";
-import {notAuthenticatedMiddleWare} from "./modules/middlewares/notAuthenticated.middleware.ts";
-import {SigninPage} from "./pages/SigninPage.tsx";
+import MainLayout from './components/layout/MainLayout.tsx';
+import { notAuthenticatedMiddleWare } from './modules/middlewares/notAuthenticated.middleware.ts';
+import { SigninPage } from './pages/SigninPage.tsx';
+import { protectedMiddleware } from './modules/middlewares/protectedMiddleware.ts';
+import { AuthRoutes } from './components/auth/AuthRoutes.tsx';
+import { AllPostsPage } from './pages/AllPostsPage.tsx';
+import { ToastContainer } from 'react-toastify';
+import { PostPage } from './pages/PostPage.tsx';
 
 function App() {
     userStore.persist.rehydrate();
     const queryClient = new QueryClient();
 
-    const route = [{
-        path: '/',
-        id: 'root',
-        element: <MainLayout/>,
-        children: [
-            {
-                path: 'logout',
-                loader: () => {
-                    userStore.getState().logout();
-                    return redirect('/signin');
+    const route = [
+        {
+            element: <MainLayout />,
+            children: [
+                {
+                    path: 'logout',
+                    loader: () => {
+                        userStore.getState().logout();
+                        return redirect('/signin');
+                    },
                 },
-            },
-            {
-                loader: notAuthenticatedMiddleWare,
-                path: 'signin',
-                element: <SigninPage />,
-                handle: { title: 'Connectez-vous' },
-            }
-        ]
-    }];
+                {
+                    loader: notAuthenticatedMiddleWare,
+                    path: 'signin',
+                    element: <SigninPage />,
+                    handle: { title: 'Connectez-vous' },
+                },
+                {
+                    loader: protectedMiddleware,
+                    element: <AuthRoutes />,
+                    children: [
+                        {
+                            index: true,
+                            path: '/',
+                            element: <AllPostsPage />,
+                        },
+                        {
+                            path: '/post/:postId',
+                            element: <PostPage />,
+                        },
+                    ],
+                },
+            ],
+        },
+    ];
 
     const router = createBrowserRouter(route);
     return (
         <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />
+            <ToastContainer position="top-right" theme="light" />
         </QueryClientProvider>
     );
 }
 
-export default App
+export default App;

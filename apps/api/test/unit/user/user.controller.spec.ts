@@ -5,6 +5,8 @@ import { CreateUserDto } from '../../../src/user/dto/createUser.dto';
 import { Role } from '../../../src/common/roles/roles.enum';
 import { Types } from 'mongoose';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 describe('UserController', () => {
     let controller: UserController;
@@ -34,6 +36,19 @@ describe('UserController', () => {
                 {
                     provide: UserService,
                     useValue: mockUserService,
+                },
+                {
+                    provide: JwtService,
+                    useValue: {
+                        verifyAsync: jest.fn(),
+                        sign: jest.fn(),
+                    },
+                },
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: jest.fn(),
+                    },
                 },
             ],
         }).compile();
