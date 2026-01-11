@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { CommentInput } from '../components/comment/CommentInput.tsx';
 import { CommentCard } from '../components/comment/CommentCard.tsx';
 import { UseFetchCommentsByPostId } from '../hooks/fetchComments.ts';
+import MDEditor from '@uiw/react-md-editor';
 
 export const PostPage = () => {
     const { postId } = useParams();
@@ -51,7 +52,9 @@ export const PostPage = () => {
                                 post?.createdAt ?? '',
                             ).toLocaleDateString()}
                         </div>
-                        <div className="mt-4">{post?.body}</div>
+                        <div className="mt-4 prose prose-lg max-w-none [&_.wmde-markdown]:bg-transparent! [&_.wmde-markdown]:p-0! [&_.wmde-markdown-var]:bg-transparent! **:bg-transparent!">
+                            <MDEditor.Markdown source={post?.body ?? ''} />
+                        </div>
                         <div className="w-full">
                             <CommentInput postId={postId} />
                             <div className="gap-4 mt-4 flex flex-col">

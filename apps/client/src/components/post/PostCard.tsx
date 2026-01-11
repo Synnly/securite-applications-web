@@ -1,5 +1,6 @@
 import type { Post } from '../../modules/types/post.type.ts';
 import { Clock, User } from 'lucide-react';
+import { stripMarkdown } from '../../utils/markdown.ts';
 
 interface Props {
     post: Post;
@@ -18,7 +19,9 @@ export const PostCard = ({ post }: Props) => {
                             <div className="card-title truncate block">
                                 {post.title}
                             </div>
-                            <div className="">{ellipsedBody}</div>
+                            <div className="">
+                                {stripMarkdown(ellipsedBody)}
+                            </div>
                         </div>
                         <div className="flex flex-col justify-between shrink-0">
                             <div className="flex whitespace-nowrap items-center gap-2">
