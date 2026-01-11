@@ -1,0 +1,66 @@
+import { useMutation } from '@tanstack/react-query';
+import { userStore } from '../stores/userStore';
+import { useNavigate } from 'react-router';
+import type { formSignUp } from '../modules/types/formRegister.type';
+
+export const UseRegister = () => {
+    const setAccess = userStore((state) => state.set);
+    const getAccess = userStore((state) => state.get);
+    const navigate = useNavigate();
+    const API_URL = import.meta.env.VITE_APIURL;
+    if (!API_URL) throw new Error('API URL is not configured');
+
+    const { mutateAsync, isPending, isError, error, reset } = useMutation({
+        mutationFn: async (data: {
+            email: string;
+            password: string;
+            role: string;
+        }) => {
+            const res = await fetch(`${API_URL}/user`, {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+            if (!res.ok) {
+                const message = await res.json();
+                throw new Error(message.message);
+            }
+            return res;
+        },
+    });
+
+    const register = async (data: formSignUp) => {
+        const { repeatPassword, ...registerData } = data;
+        const res = await mutateAsync({ ...registerData, role: 'USER' });
+
+        if (res.ok) {
+            const loginRes = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    email: registerData.email,
+                    password: registerData.password,
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+
+            if (loginRes.ok) {
+                const accessToken = await loginRes.text();
+                setAccess(accessToken);
+                const user = getAccess(accessToken);
+                if (!user)
+                    throw new Error(
+                        'Erreur lors de la récupération des informations utilisateur.',
+                    );
+                navigate('/');
+            }
+        }
+    };
+
+    return { register, isPending, isError, error, reset };
+};

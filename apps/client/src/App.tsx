@@ -10,6 +10,7 @@ import { AuthRoutes } from './components/auth/AuthRoutes.tsx';
 import { AllPostsPage } from './pages/AllPostsPage.tsx';
 import { ToastContainer } from 'react-toastify';
 import { PostPage } from './pages/PostPage.tsx';
+import { RegisterPage } from './pages/RegisterPage.tsx';
 
 function App() {
     userStore.persist.rehydrate();
@@ -31,6 +32,12 @@ function App() {
                     path: 'signin',
                     element: <SigninPage />,
                     handle: { title: 'Connectez-vous' },
+                },
+                {
+                    load: notAuthenticatedMiddleWare,
+                    path: 'signup',
+                    element: <RegisterPage />,
+                    handle: { title: "S'inscrire" },
                 },
                 {
                     loader: protectedMiddleware,
