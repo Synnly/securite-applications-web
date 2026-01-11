@@ -9,7 +9,7 @@ export const Navbar = () => {
         <>
             <nav className="sticky top-0 z-50 w-full mx-auto bg-base-100 text-base-content px-8 py-2 shadow-md shadow-base-200">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <a className="btn btn-ghost" href="/">
+                    <a className="btn btn-ghost" href="/posts">
                         Accueil
                     </a>
 

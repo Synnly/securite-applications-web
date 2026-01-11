@@ -9,6 +9,6 @@ export const notAuthenticatedMiddleWare = () => {
     const get = userStore.getState().get;
     if (access) {
         const accessToken = get(access);
-        if (accessToken) return redirect(`/`);
+        if (accessToken) return redirect(`/posts`);
     }
 };

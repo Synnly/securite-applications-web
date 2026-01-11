@@ -11,6 +11,7 @@ import { AllPostsPage } from './pages/AllPostsPage.tsx';
 import { ToastContainer } from 'react-toastify';
 import { PostPage } from './pages/PostPage.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
+import { LandingPage } from './pages/LandingPage.tsx';
 
 function App() {
     userStore.persist.rehydrate();
@@ -29,6 +30,11 @@ function App() {
                 },
                 {
                     loader: notAuthenticatedMiddleWare,
+                    path: '/',
+                    element: <LandingPage />,
+                },
+                {
+                    loader: notAuthenticatedMiddleWare,
                     path: 'signin',
                     element: <SigninPage />,
                     handle: { title: 'Connectez-vous' },
@@ -44,8 +50,7 @@ function App() {
                     element: <AuthRoutes />,
                     children: [
                         {
-                            index: true,
-                            path: '/',
+                            path: '/posts',
                             element: <AllPostsPage />,
                         },
                         {
