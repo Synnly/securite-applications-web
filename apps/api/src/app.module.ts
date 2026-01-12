@@ -8,6 +8,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { PostModule } from './post/post.module';
 import { TokensMiddleware } from './common/middleware/tokens.middleware';
 import { CommentModule } from './comment/comment.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
     imports: [
@@ -33,6 +34,7 @@ import { CommentModule } from './comment/comment.module';
         AuthModule,
         PostModule,
         CommentModule,
+        SeedModule,
     ],
     controllers: [],
     providers: [

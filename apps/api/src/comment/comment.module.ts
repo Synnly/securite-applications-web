@@ -18,6 +18,6 @@ import { PaginationService } from 'src/common/pagination/pagination.service';
     ],
     providers: [CommentService, PaginationService],
     controllers: [CommentController],
-    exports: [],
+    exports: [CommentService],
 })
 export class CommentModule {}
