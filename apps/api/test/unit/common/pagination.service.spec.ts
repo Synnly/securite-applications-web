@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaginationService } from '../../../src/common/pagination/pagination.service';
-import { Model } from 'mongoose';
 
 describe('PaginationService', () => {
     let service: PaginationService;
