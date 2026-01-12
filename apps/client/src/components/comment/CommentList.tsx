@@ -50,8 +50,9 @@ export const CommentList = ({ postId }: Props) => {
             if (currentTarget) {
                 observer.unobserve(currentTarget);
             }
+            observer.disconnect();
         };
-    }, [pagination?.hasNext, isFetching]);
+    }, [pagination?.hasNext, isFetching, postId]);
 
     if (isLoading && page === 1) {
         return <Spinner />;
