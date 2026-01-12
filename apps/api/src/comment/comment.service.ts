@@ -35,7 +35,7 @@ export class CommentService {
             query.page,
             query.limit,
             [{ path: 'author', select: '_id email' }],
-            { post: postId },
+            { deletedAt: null, post: postId },
         );
     }
 
