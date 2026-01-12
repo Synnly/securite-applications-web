@@ -201,15 +201,16 @@ describe('CommentModule (Integration)', () => {
                 .get(`/comment/by-post/${mockPostId}`)
                 .expect(200);
 
-            expect(Array.isArray(response.body)).toBe(true);
-            expect(response.body.length).toBe(1);
-            expect(response.body[0].text).toEqual('Comment 1');
+            expect(response.body).toHaveProperty('data');
+            expect(Array.isArray(response.body.data)).toBe(true);
+            expect(response.body.data.length).toBe(1);
+            expect(response.body.data[0].text).toEqual('Comment 1');
 
-            expect(response.body[0].author).toBeDefined();
-            expect(response.body[0].author.email).toEqual('author@test.com');
-            expect(response.body[0].author.password).toBeUndefined();
+            expect(response.body.data[0].author).toBeDefined();
+            expect(response.body.data[0].author.email).toEqual('author@test.com');
+            expect(response.body.data[0].author.password).toBeUndefined();
 
-            const responseId = response.body[0].id || response.body[0]._id;
+            const responseId = response.body.data[0].id || response.body.data[0]._id;
             expect(responseId).toBeDefined();
         });
 
@@ -220,7 +221,9 @@ describe('CommentModule (Integration)', () => {
                 .get(`/comment/by-post/${mockPostId}`)
                 .expect(200);
 
-            expect(response.body).toEqual([]);
+            expect(response.body).toHaveProperty('data');
+            expect(response.body.data).toEqual([]);
+            expect(response.body.total).toBe(0);
         });
 
         it('should return 404 if post does not exist', async () => {

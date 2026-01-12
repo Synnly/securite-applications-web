@@ -3,6 +3,7 @@ import { CommentService } from '../../../src/comment/comment.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { UserService } from '../../../src/user/user.service';
 import { PostService } from '../../../src/post/post.service';
+import { PaginationService } from '../../../src/common/pagination/pagination.service';
 import { NotFoundException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { CreateCommentDto } from '../../../src/comment/dto/createComment.dto';
@@ -12,6 +13,7 @@ describe('CommentService', () => {
     let mockCommentModel: any;
     let mockPostService: any;
     let mockUserService: any;
+    let mockPaginationService: any;
 
     const mockAuthorId = new Types.ObjectId().toString();
     const mockPostId = new Types.ObjectId().toString();
@@ -40,6 +42,10 @@ describe('CommentService', () => {
             findOne: jest.fn(),
         };
 
+        mockPaginationService = {
+            paginate: jest.fn(),
+        };
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 CommentService,
@@ -54,6 +60,10 @@ describe('CommentService', () => {
                 {
                     provide: UserService,
                     useValue: mockUserService,
+                },
+                {
+                    provide: PaginationService,
+                    useValue: mockPaginationService,
                 },
             ],
         }).compile();
@@ -70,60 +80,80 @@ describe('CommentService', () => {
         it('should return comments for a post', async () => {
             mockPostService.findOneById.mockResolvedValue({ _id: mockPostId });
 
-            const expectedComments = [mockComment];
+            const expectedResult = {
+                data: [mockComment],
+                total: 1,
+                page: 1,
+                limit: 10,
+                totalPages: 1,
+                hasNext: false,
+                hasPrev: false,
+            };
 
-            const mockExec = jest.fn().mockResolvedValue(expectedComments);
-            const mockPopulate = jest.fn().mockReturnValue({ exec: mockExec });
-            mockCommentModel.find.mockReturnValue({ populate: mockPopulate });
+            mockPaginationService.paginate.mockResolvedValue(expectedResult);
 
-            const result = await service.findAllByPostId(mockPostId);
+            const result = await service.findAllByPostId(mockPostId, {
+                page: 1,
+                limit: 10,
+            });
 
-            expect(result).toEqual(expectedComments);
+            expect(result).toEqual(expectedResult);
             expect(mockPostService.findOneById).toHaveBeenCalledWith(
                 mockPostId,
             );
-            expect(mockCommentModel.find).toHaveBeenCalledWith({
-                post: mockPostId,
-            });
-            expect(mockPopulate).toHaveBeenCalledWith('author', '_id email');
-            expect(mockExec).toHaveBeenCalled();
+            expect(mockPaginationService.paginate).toHaveBeenCalledWith(
+                mockCommentModel,
+                1,
+                10,
+                [{ path: 'author', select: '_id email' }],
+                { post: mockPostId },
+            );
         });
 
         it('should throw NotFoundException if post for comments listing not found', async () => {
             mockPostService.findOneById.mockResolvedValue(null);
 
-            await expect(service.findAllByPostId(mockPostId)).rejects.toThrow(
-                NotFoundException,
-            );
+            await expect(
+                service.findAllByPostId(mockPostId, { page: 1, limit: 10 }),
+            ).rejects.toThrow(NotFoundException);
             expect(mockPostService.findOneById).toHaveBeenCalledWith(
                 mockPostId,
             );
-            expect(mockCommentModel.find).not.toHaveBeenCalled();
+            expect(mockPaginationService.paginate).not.toHaveBeenCalled();
         });
 
-        it('should return an empty array when no comments found', async () => {
+        it('should return empty data when no comments found', async () => {
             mockPostService.findOneById.mockResolvedValue({ _id: mockPostId });
 
-            const mockExec = jest.fn().mockResolvedValue([]);
-            const mockPopulate = jest.fn().mockReturnValue({ exec: mockExec });
-            mockCommentModel.find.mockReturnValue({ populate: mockPopulate });
+            const emptyResult = {
+                data: [],
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPages: 0,
+                hasNext: false,
+                hasPrev: false,
+            };
 
-            const result = await service.findAllByPostId(mockPostId);
+            mockPaginationService.paginate.mockResolvedValue(emptyResult);
 
-            expect(result).toEqual([]);
+            const result = await service.findAllByPostId(mockPostId, {
+                page: 1,
+                limit: 10,
+            });
+
+            expect(result).toEqual(emptyResult);
         });
 
         it('should propagate database errors', async () => {
             mockPostService.findOneById.mockResolvedValue({ _id: mockPostId });
 
             const error = new Error('Database connection error');
-            const mockExec = jest.fn().mockRejectedValue(error);
-            const mockPopulate = jest.fn().mockReturnValue({ exec: mockExec });
-            mockCommentModel.find.mockReturnValue({ populate: mockPopulate });
+            mockPaginationService.paginate.mockRejectedValue(error);
 
-            await expect(service.findAllByPostId(mockPostId)).rejects.toThrow(
-                error,
-            );
+            await expect(
+                service.findAllByPostId(mockPostId, { page: 1, limit: 10 }),
+            ).rejects.toThrow(error);
         });
     });
 

@@ -125,8 +125,10 @@ describe('PostModule (Integration)', () => {
                 .get('/post/all')
                 .expect(200);
 
-            expect(Array.isArray(response.body)).toBe(true);
-            expect(response.body.length).toBe(0);
+            expect(response.body).toHaveProperty('data');
+            expect(Array.isArray(response.body.data)).toBe(true);
+            expect(response.body.data.length).toBe(0);
+            expect(response.body.total).toBe(0);
         });
 
         it('should return all posts with populated author info', async () => {
@@ -140,10 +142,11 @@ describe('PostModule (Integration)', () => {
                 .get('/post/all')
                 .expect(200);
 
-            expect(response.body.length).toBe(1);
-            expect(response.body[0].title).toEqual(validPostDto.title);
-            expect(response.body[0].author).toBeDefined();
-            expect(response.body[0].author.email).toEqual('author@test.com');
+            expect(response.body).toHaveProperty('data');
+            expect(response.body.data.length).toBe(1);
+            expect(response.body.data[0].title).toEqual(validPostDto.title);
+            expect(response.body.data[0].author).toBeDefined();
+            expect(response.body.data[0].author.email).toEqual('author@test.com');
         });
     });
 

@@ -2,12 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PostService } from '../../../src/post/post.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { UserService } from '../../../src/user/user.service';
+import { PaginationService } from '../../../src/common/pagination/pagination.service';
 import { Post } from '../../../src/post/post.schema';
 
 describe('PostService', () => {
     let service: PostService;
     let mockPostModel: any;
     let mockUserService: any;
+    let mockPaginationService: any;
 
     const mockAuthorId = '507f1f77bcf86cd799439011';
     const mockPostId = '507f1f77bcf86cd799439012';
@@ -39,6 +41,10 @@ describe('PostService', () => {
             findOne: jest.fn(),
         };
 
+        mockPaginationService = {
+            paginate: jest.fn(),
+        };
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 PostService,
@@ -49,6 +55,10 @@ describe('PostService', () => {
                 {
                     provide: UserService,
                     useValue: mockUserService,
+                },
+                {
+                    provide: PaginationService,
+                    useValue: mockPaginationService,
                 },
             ],
         }).compile();
@@ -61,12 +71,27 @@ describe('PostService', () => {
     });
 
     describe('findAll', () => {
-        it('should return all posts', async () => {
-            const result = await service.findAll();
-            expect(mockPostModel.find).toHaveBeenCalledWith({
-                deletedAt: null,
-            });
-            // Pas d'assertion sur le résultat car exec retourne undefined par défaut ici, l'important est la définition du mock
+        it('should return paginated posts', async () => {
+            const mockResult = {
+                data: [],
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPages: 0,
+                hasNext: false,
+                hasPrev: false,
+            };
+            mockPaginationService.paginate.mockResolvedValue(mockResult);
+
+            const result = await service.findAll({ page: 1, limit: 10 });
+            
+            expect(result).toEqual(mockResult);
+            expect(mockPaginationService.paginate).toHaveBeenCalledWith(
+                mockPostModel,
+                1,
+                10,
+                [{ path: 'author', select: '_id email' }],
+            );
         });
     });
 
