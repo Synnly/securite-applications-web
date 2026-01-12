@@ -3,17 +3,20 @@ import { useEffect } from 'react';
 import { postStore } from '../stores/postStore.ts';
 import { useQuery } from '@tanstack/react-query';
 import type { CreatePostPayload, Post } from '../modules/types/post.type.ts';
+import type { PaginationResult } from '../modules/types/pagination.type.ts';
 
 const API_URL = import.meta.env.VITE_APIURL;
 if (!API_URL) throw new Error('API URL is not configured');
 
 export const UseFetchPosts = () => {
     const setPosts = postStore((state) => state.setPosts);
-    const query = useQuery<Post[], Error>({
-        queryKey: ['posts'],
+    const filters = postStore((state) => state.filters);
+
+    const query = useQuery<PaginationResult<Post>, Error>({
+        queryKey: ['posts', filters],
 
         queryFn: async () => {
-            return await fetchPosts();
+            return await fetchPosts(filters);
         },
 
         staleTime: 5 * 60 * 1000,
@@ -30,10 +33,18 @@ export const UseFetchPosts = () => {
     return query;
 };
 
-async function fetchPosts(): Promise<Post[]> {
+async function fetchPosts(filters: {
+    page?: number;
+    limit?: number;
+}): Promise<PaginationResult<Post>> {
     const authFetch = UseAuthFetch();
 
-    const res = await authFetch(`${API_URL}/post/all`, {
+    const params = new URLSearchParams();
+
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+
+    const res = await authFetch(`${API_URL}/post/all?${params.toString()}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
     });
@@ -84,11 +95,10 @@ export async function fetchPostById(
     injectedAuthFetch?: any,
 ): Promise<Post> {
     const authFetch = injectedAuthFetch || UseAuthFetch();
-    const res = await authFetch(`${API_URL}/post/${id}`, {
+    const res = await authFetch(`${API_URL}/post/by-id/${id}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
     });
-
     if (res.status === 404) {
         throw new Error('404 Not Found');
     }

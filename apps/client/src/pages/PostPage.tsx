@@ -4,8 +4,7 @@ import { UseFetchPostById } from '../hooks/fetchPosts.ts';
 import { useNavigate, useParams } from 'react-router';
 import { useEffect } from 'react';
 import { CommentInput } from '../components/comment/CommentInput.tsx';
-import { CommentCard } from '../components/comment/CommentCard.tsx';
-import { UseFetchCommentsByPostId } from '../hooks/fetchComments.ts';
+import { CommentList } from '../components/comment/CommentList.tsx';
 import MDEditor from '@uiw/react-md-editor';
 
 export const PostPage = () => {
@@ -14,7 +13,6 @@ export const PostPage = () => {
     const navigate = useNavigate();
 
     const { isLoading, isError, data: post } = UseFetchPostById(safePostId);
-    const { data: comments } = UseFetchCommentsByPostId(safePostId);
 
     useEffect(() => {
         if (!safePostId) {
@@ -57,15 +55,7 @@ export const PostPage = () => {
                         </div>
                         <div className="w-full">
                             <CommentInput postId={postId} />
-                            <div className="gap-4 mt-4 flex flex-col">
-                                {comments &&
-                                    comments.map((comment) => (
-                                        <CommentCard
-                                            comment={comment}
-                                            key={comment.id}
-                                        />
-                                    ))}
-                            </div>
+                            <CommentList postId={postId} />
                         </div>
                     </div>
                 </>

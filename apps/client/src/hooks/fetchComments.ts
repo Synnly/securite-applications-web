@@ -2,6 +2,7 @@ import type {
     Comment,
     CreateCommentPayload,
 } from '../modules/types/comment.type.ts';
+import type { PaginationResult } from '../modules/types/pagination.type.ts';
 import { UseAuthFetch } from './authFetch.ts';
 import { commentStore } from '../stores/commentStore.ts';
 import { useQuery } from '@tanstack/react-query';
@@ -10,13 +11,20 @@ import { useEffect } from 'react';
 const API_URL = import.meta.env.VITE_APIURL;
 if (!API_URL) throw new Error('API URL is not configured');
 
-export const UseFetchCommentsByPostId = (postId: string) => {
+export const UseFetchCommentsByPostId = (
+    postId: string,
+    page: number = 1,
+    limit: number = 10,
+) => {
     const setComments = commentStore((state) => state.setComments);
-    const query = useQuery<Comment[], Error>({
-        queryKey: ['comments', postId],
+    const loadMore = commentStore((state) => state.loadMore);
+    const isFirstPage = page === 1;
+
+    const query = useQuery<PaginationResult<Comment>, Error>({
+        queryKey: ['comments', postId, page, limit],
 
         queryFn: async () => {
-            return await fetchCommentsByPostId(postId);
+            return await fetchCommentsByPostId(postId, page, limit);
         },
 
         staleTime: 5 * 60 * 1000,
@@ -25,10 +33,14 @@ export const UseFetchCommentsByPostId = (postId: string) => {
     });
 
     useEffect(() => {
-        if (query.data && typeof setComments === 'function') {
-            setComments(query.data);
+        if (query.data) {
+            if (isFirstPage) {
+                setComments(query.data, postId);
+            } else {
+                loadMore(query.data);
+            }
         }
-    }, [query.data, setComments]);
+    }, [query.data, setComments, loadMore, postId, isFirstPage]);
 
     return query;
 };
@@ -52,13 +64,24 @@ export async function createComment({ data }: CreateCommentPayload) {
     }
 }
 
-async function fetchCommentsByPostId(postId: string): Promise<Comment[]> {
+async function fetchCommentsByPostId(
+    postId: string,
+    page: number = 1,
+    limit: number = 10,
+): Promise<PaginationResult<Comment>> {
     const authFetch = UseAuthFetch();
 
-    const res = await authFetch(`${API_URL}/comment/by-post/${postId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-    });
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+
+    const res = await authFetch(
+        `${API_URL}/comment/by-post/${postId}?${params.toString()}`,
+        {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        },
+    );
 
     if (!res.ok) {
         const error = await res
