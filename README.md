@@ -30,6 +30,7 @@ configurer en fonction de la VM.
    ```bash
    cd apps/api
    npm i
+   mkdir keys
    ```
    
 3. Configurer les variables d'environnement (voir section "Configuration des environnements" ci-dessous).
