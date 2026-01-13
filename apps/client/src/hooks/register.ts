@@ -57,7 +57,7 @@ export const UseRegister = () => {
                     throw new Error(
                         'Erreur lors de la récupération des informations utilisateur.',
                     );
-                navigate('/');
+                navigate('/posts');
             }
         }
     };
