@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/createUser.dto';
 import { PostService } from '../post/post.service';
@@ -45,10 +45,8 @@ export class SeedService {
 
                 await this.userService.create(dto);
             } catch (error) {
-                console.error(
-                    'Failed to write ADMIN-CREDENTIALS.txt file during seeding:',
-                    error,
-                    '. Default admin not created.',
+                Logger.error(
+                    'Failed to write ADMIN-CREDENTIALS.txt file during seeding. Default admin not created.',
                 );
             }
         }
@@ -57,7 +55,7 @@ export class SeedService {
         try {
             await this.seedPostsAndComments();
         } catch (error) {
-            console.error(
+            Logger.error(
                 'Failed to seed posts and comments during seeding:',
                 error,
             );
@@ -693,6 +691,6 @@ Commentez le **pourquoi**, pas le **comment**.
             }
         }
 
-        console.log('✅ Successfully seeded 12 posts with random comments');
+        Logger.log('✅ Successfully seeded 12 posts with random comments');
     }
 }

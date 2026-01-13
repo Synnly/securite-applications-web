@@ -40,7 +40,7 @@ async function bootstrap() {
     try {
         await seedService.run();
     } catch (error) {
-        console.error('Seeding failed during bootstrap:', error);
+        logger.error('Seeding failed during bootstrap:', error);
     }
 
     app.use(
