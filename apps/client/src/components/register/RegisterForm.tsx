@@ -86,7 +86,7 @@ export const RegisterForm = () => {
                         })}
                         error={errors.repeatPassword}
                         type="password"
-                        placeholder="Repeter le mot de passe"
+                        placeholder="Répeter le mot de passe"
                     />
                 </div>
                 <FormSubmit
