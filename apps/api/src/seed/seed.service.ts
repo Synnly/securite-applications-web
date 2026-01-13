@@ -54,7 +54,14 @@ export class SeedService {
         }
 
         // Seed posts and comments
-        await this.seedPostsAndComments();
+        try {
+            await this.seedPostsAndComments();
+        } catch (error) {
+            console.error(
+                'Failed to seed posts and comments during seeding:',
+                error,
+            );
+        }
     }
 
     /**
