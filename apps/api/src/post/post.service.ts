@@ -26,6 +26,7 @@ export class PostService {
             query.page,
             query.limit,
             [{ path: 'author', select: '_id email' }],
+            { deletedAt: null },
         );
     }
 
