@@ -6,6 +6,7 @@ import { CommentSchema } from './comment.schema';
 import { UserModule } from '../user/user.module';
 import { PostModule } from '../post/post.module';
 import { Comment } from './comment.schema';
+import { PaginationService } from 'src/common/pagination/pagination.service';
 
 @Module({
     imports: [
@@ -15,8 +16,8 @@ import { Comment } from './comment.schema';
         UserModule,
         PostModule,
     ],
-    providers: [CommentService],
+    providers: [CommentService, PaginationService],
     controllers: [CommentController],
-    exports: [],
+    exports: [CommentService],
 })
 export class CommentModule {}

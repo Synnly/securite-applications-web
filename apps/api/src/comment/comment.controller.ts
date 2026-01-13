@@ -6,6 +6,7 @@ import {
     HttpStatus,
     Param,
     Post,
+    Query,
     Req,
     Request,
     UseGuards,
@@ -17,6 +18,8 @@ import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateCommentDto } from './dto/createComment.dto';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { PaginationResult } from 'src/common/pagination/dto/paginationResult';
 
 @Controller('comment')
 export class CommentController {
@@ -32,13 +35,27 @@ export class CommentController {
     @HttpCode(HttpStatus.OK)
     async findAll(
         @Param('postId', ParseObjectIdPipe) postId: string,
-    ): Promise<CommentDto[]> {
-        const comments = await this.commentService.findAllByPostId(postId);
-        return comments.map((comment) =>
-            plainToInstance(CommentDto, comment, {
-                excludeExtraneousValues: true,
+        @Query(
+            new ValidationPipe({
+                whitelist: true,
+                forbidNonWhitelisted: true,
+                transform: true,
             }),
+        )
+        query: PaginationDto,
+    ): Promise<PaginationResult<CommentDto>> {
+        const comments = await this.commentService.findAllByPostId(
+            postId,
+            query,
         );
+        return {
+            ...comments,
+            data: comments.data.map((comment) =>
+                plainToInstance(CommentDto, comment, {
+                    excludeExtraneousValues: true,
+                }),
+            ),
+        };
     }
 
     /**

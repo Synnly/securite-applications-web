@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import * as fs from 'fs';
 import path from 'path';
 import { ConsoleLogger } from '@nestjs/common';
+import { SeedService } from './seed/seed.service';
 
 async function bootstrap() {
     const keyPath = path.join(__dirname, '../keys/key.pem');
@@ -34,6 +35,13 @@ async function bootstrap() {
         httpsOptions,
         logger: logger,
     });
+
+    const seedService = app.get(SeedService);
+    try {
+        await seedService.run();
+    } catch (error) {
+        logger.error('Seeding failed during bootstrap:', error);
+    }
 
     app.use(
         helmet({
@@ -90,5 +98,6 @@ async function bootstrap() {
     });
 
     await app.listen(process.env.PORT ?? 3000);
+    logger.log('Listening on port ' + (process.env.PORT ?? 3000), 'Bootstrap');
 }
 bootstrap();

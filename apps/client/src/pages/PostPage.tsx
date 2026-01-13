@@ -4,8 +4,8 @@ import { UseFetchPostById } from '../hooks/fetchPosts.ts';
 import { useNavigate, useParams } from 'react-router';
 import { useEffect } from 'react';
 import { CommentInput } from '../components/comment/CommentInput.tsx';
-import { CommentCard } from '../components/comment/CommentCard.tsx';
-import { UseFetchCommentsByPostId } from '../hooks/fetchComments.ts';
+import { CommentList } from '../components/comment/CommentList.tsx';
+import MDEditor from '@uiw/react-md-editor';
 
 export const PostPage = () => {
     const { postId } = useParams();
@@ -13,7 +13,6 @@ export const PostPage = () => {
     const navigate = useNavigate();
 
     const { isLoading, isError, data: post } = UseFetchPostById(safePostId);
-    const { data: comments } = UseFetchCommentsByPostId(safePostId);
 
     useEffect(() => {
         if (!safePostId) {
@@ -41,8 +40,8 @@ export const PostPage = () => {
                 <Spinner />
             ) : (
                 <>
-                    <div className="flex flex-col w-full px-60 py-10 gap-4">
-                        <div className="text-4xl font-medium">
+                    <div className="flex flex-col w-full p-4 lg:px-60 lg:py-10 gap-4">
+                        <div className="text-2xl lg:text-4xl font-medium">
                             {post?.title}
                         </div>
                         <div className="text-base-content/70 italic">
@@ -51,18 +50,12 @@ export const PostPage = () => {
                                 post?.createdAt ?? '',
                             ).toLocaleDateString()}
                         </div>
-                        <div className="mt-4">{post?.body}</div>
+                        <div className="prose prose-lg max-w-none [&_.wmde-markdown]:bg-transparent! [&_.wmde-markdown]:p-0! [&_.wmde-markdown-var]:bg-transparent! **:bg-transparent!">
+                            <MDEditor.Markdown source={post?.body ?? ''} />
+                        </div>
                         <div className="w-full">
                             <CommentInput postId={postId} />
-                            <div className="gap-4 mt-4 flex flex-col">
-                                {comments &&
-                                    comments.map((comment) => (
-                                        <CommentCard
-                                            comment={comment}
-                                            key={comment.id}
-                                        />
-                                    ))}
-                            </div>
+                            <CommentList postId={postId} />
                         </div>
                     </div>
                 </>

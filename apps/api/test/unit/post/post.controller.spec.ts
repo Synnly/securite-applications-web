@@ -66,28 +66,52 @@ describe('PostController', () => {
     });
 
     describe('findAll', () => {
-        it('should return an array of PostDto', async () => {
-            mockPostService.findAll.mockResolvedValue([mockPost]);
+        it('should return paginated PostDto', async () => {
+            const mockPaginatedResult = {
+                data: [mockPost],
+                total: 1,
+                page: 1,
+                limit: 10,
+                totalPages: 1,
+                hasNext: false,
+                hasPrev: false,
+            };
 
-            const result = await controller.findAll();
+            mockPostService.findAll.mockResolvedValue(mockPaginatedResult);
 
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toHaveLength(1);
-            expect(result[0]).toBeInstanceOf(PostDto);
+            const query = { page: 1, limit: 10 };
+            const result = await controller.findAll(query);
 
-            expect(result[0].id).toEqual(postId);
-            expect(result[0].title).toBe('Test Post Title');
+            expect(result).toHaveProperty('data');
+            expect(Array.isArray(result.data)).toBe(true);
+            expect(result.data).toHaveLength(1);
+            expect(result.data[0]).toBeInstanceOf(PostDto);
 
-            expect(mockPostService.findAll).toHaveBeenCalledTimes(1);
+            expect(result.data[0].id).toEqual(postId);
+            expect(result.data[0].title).toBe('Test Post Title');
+            expect(result.total).toBe(1);
+
+            expect(mockPostService.findAll).toHaveBeenCalledWith(query);
         });
 
-        it('should return an empty array if no posts found', async () => {
-            mockPostService.findAll.mockResolvedValue([]);
+        it('should return empty data if no posts found', async () => {
+            const emptyResult = {
+                data: [],
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPages: 0,
+                hasNext: false,
+                hasPrev: false,
+            };
 
-            const result = await controller.findAll();
+            mockPostService.findAll.mockResolvedValue(emptyResult);
 
-            expect(result).toEqual([]);
-            expect(result).toHaveLength(0);
+            const query = { page: 1, limit: 10 };
+            const result = await controller.findAll(query);
+
+            expect(result.data).toEqual([]);
+            expect(result.total).toBe(0);
         });
     });
 

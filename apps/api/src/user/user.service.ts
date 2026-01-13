@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto } from './dto/createUser.dto';
+import { Role } from 'src/common/roles/roles.enum';
 
 @Injectable()
 export class UserService {
@@ -41,5 +42,16 @@ export class UserService {
             throw new ConflictException('User with this email already exists');
         }
         await this.userModel.create({ ...dto });
+    }
+
+    /**
+     * Counts the number of users with a specific role that are not soft-deleted.
+     * @param role The role to filter users by.
+     * @returns A promise that resolves to the count of users with the specified role.
+     */
+    async countByRole(role: Role): Promise<number> {
+        return this.userModel
+            .countDocuments({ role, deletedAt: { $exists: false } })
+            .exec();
     }
 }

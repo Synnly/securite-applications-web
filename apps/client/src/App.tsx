@@ -7,9 +7,12 @@ import { notAuthenticatedMiddleWare } from './modules/middlewares/notAuthenticat
 import { SigninPage } from './pages/SigninPage.tsx';
 import { protectedMiddleware } from './modules/middlewares/protectedMiddleware.ts';
 import { AuthRoutes } from './components/auth/AuthRoutes.tsx';
-import { AllPostsPage } from './pages/AllPostsPage.tsx';
+import { AllPostsLoader, AllPostsPage } from './pages/AllPostsPage.tsx';
 import { ToastContainer } from 'react-toastify';
 import { PostPage } from './pages/PostPage.tsx';
+import { RegisterPage } from './pages/RegisterPage.tsx';
+import { LandingPage } from './pages/LandingPage.tsx';
+import { DarkModeProvider } from './components/darkMode/DarkModeProvider.tsx';
 
 function App() {
     userStore.persist.rehydrate();
@@ -28,18 +31,29 @@ function App() {
                 },
                 {
                     loader: notAuthenticatedMiddleWare,
+                    path: '/',
+                    element: <LandingPage />,
+                },
+                {
+                    loader: notAuthenticatedMiddleWare,
                     path: 'signin',
                     element: <SigninPage />,
                     handle: { title: 'Connectez-vous' },
+                },
+                {
+                    loader: notAuthenticatedMiddleWare,
+                    path: 'signup',
+                    element: <RegisterPage />,
+                    handle: { title: "S'inscrire" },
                 },
                 {
                     loader: protectedMiddleware,
                     element: <AuthRoutes />,
                     children: [
                         {
-                            index: true,
-                            path: '/',
+                            path: '/posts',
                             element: <AllPostsPage />,
+                            loader: AllPostsLoader,
                         },
                         {
                             path: '/post/:postId',
@@ -54,8 +68,10 @@ function App() {
     const router = createBrowserRouter(route);
     return (
         <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router} />
-            <ToastContainer position="top-right" theme="light" />
+            <DarkModeProvider>
+                <RouterProvider router={router} />
+                <ToastContainer position="top-right" theme="light" />
+            </DarkModeProvider>
         </QueryClientProvider>
     );
 }

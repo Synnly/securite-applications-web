@@ -8,6 +8,7 @@ import {
     NotFoundException,
     Param,
     Post,
+    Query,
     Req,
     Request,
     UseGuards,
@@ -22,6 +23,8 @@ import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from '../common/roles/roles.decorator';
 import { Role } from '../common/roles/roles.enum';
 import { RolesGuard } from '../common/roles/roles.guard';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { PaginationResult } from 'src/common/pagination/dto/paginationResult';
 
 @Controller('post')
 export class PostController {
@@ -34,13 +37,26 @@ export class PostController {
     @UseGuards(AuthGuard)
     @Get('all')
     @HttpCode(HttpStatus.OK)
-    async findAll(): Promise<PostDto[]> {
-        const posts = await this.postService.findAll();
-        return posts.map((post) =>
-            plainToInstance(PostDto, post, {
-                excludeExtraneousValues: true,
+    async findAll(
+        @Query(
+            new ValidationPipe({
+                whitelist: true,
+                forbidNonWhitelisted: true,
+                transform: true,
             }),
-        );
+        )
+        query: PaginationDto,
+    ): Promise<PaginationResult<PostDto>> {
+        const posts = await this.postService.findAll(query);
+
+        return {
+            ...posts,
+            data: posts.data.map((post) =>
+                plainToInstance(PostDto, post, {
+                    excludeExtraneousValues: true,
+                }),
+            ),
+        };
     }
 
     /**

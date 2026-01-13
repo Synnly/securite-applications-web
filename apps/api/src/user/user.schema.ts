@@ -28,7 +28,7 @@ export class User {
      * User's role in the system
      * @see {@link Role} enum for available roles
      */
-    @Prop({ required: true, type: String, enum: Role })
+    @Prop({ required: true, type: String, enum: Role, default: Role.USER })
     role: Role;
 
     /**

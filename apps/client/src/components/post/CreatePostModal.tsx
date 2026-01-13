@@ -8,6 +8,7 @@ import {
     type CreatePostForm,
 } from '../../modules/types/post.type';
 import { FormInput } from '../form/FormInput.tsx';
+import { FormMarkdownEditor } from '../form/FormMarkdownEditor.tsx';
 import { FormSubmit } from '../form/FormSubmit.tsx';
 import { CustomForm } from '../form/CustomForm.tsx';
 import { X } from 'lucide-react';
@@ -26,6 +27,7 @@ export function CreatePostModal({ isOpen, onClose }: Props) {
         handleSubmit,
         formState: { errors },
         reset,
+        control,
     } = useForm<CreatePostForm>({
         resolver: zodResolver(createPostSchema) as Resolver<CreatePostForm>,
         mode: 'onSubmit',
@@ -92,30 +94,15 @@ export function CreatePostModal({ isOpen, onClose }: Props) {
                         className="w-full"
                     />
 
-                    <div className="flex flex-col w-full">
-                        <label
-                            className="font-bold text-sm pb-2 uppercase"
-                            htmlFor="body"
-                        >
-                            Corps
-                        </label>
-                        <textarea
-                            {...register('body')}
-                            placeholder="Décrivez le post..."
-                            disabled={isPending}
-                            rows={6}
-                            className="textarea textarea-bordered w-full resize-vertical"
-                        />
-                        {errors.body && (
-                            <span className="text-error-content mt-1 bg-error p-3">
-                                {errors.body.message &&
-                                    errors.body.message
-                                        .charAt(0)
-                                        .toUpperCase() +
-                                        errors.body.message.slice(1)}
-                            </span>
-                        )}
-                    </div>
+                    <FormMarkdownEditor<CreatePostForm>
+                        name="body"
+                        label="Corps"
+                        control={control}
+                        error={errors.body}
+                        placeholder="Décrivez le post en Markdown..."
+                        disabled={isPending}
+                        rows={10}
+                    />
 
                     <div className="flex gap-3 justify-end pt-4">
                         <button

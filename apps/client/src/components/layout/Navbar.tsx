@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { CreatePostModal } from '../post/CreatePostModal.tsx';
 import { useState } from 'react';
+import { ToggleDarkMode } from '../darkMode/DarkModeToggle.tsx';
 
 export const Navbar = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -9,11 +10,12 @@ export const Navbar = () => {
         <>
             <nav className="sticky top-0 z-50 w-full mx-auto bg-base-100 text-base-content px-8 py-2 shadow-md shadow-base-200">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <a className="btn btn-ghost" href="/">
+                    <a className="btn btn-ghost" href="/posts">
                         Accueil
                     </a>
 
                     <div className="flex gap-4">
+                        <ToggleDarkMode />
                         <button
                             className="btn btn-primary"
                             onClick={() => setIsModalOpen(true)}

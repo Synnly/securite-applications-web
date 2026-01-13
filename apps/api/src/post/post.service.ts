@@ -4,23 +4,30 @@ import { Model } from 'mongoose';
 import { Post, PostDocument } from './post.schema';
 import { CreatePostDto } from './dto/createPost.dto';
 import { UserService } from '../user/user.service';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { PaginationResult } from 'src/common/pagination/dto/paginationResult';
+import { PaginationService } from 'src/common/pagination/pagination.service';
 
 @Injectable()
 export class PostService {
     constructor(
         @InjectModel(Post.name) private readonly postModel: Model<PostDocument>,
         private readonly userService: UserService,
+        private readonly paginationService: PaginationService,
     ) {}
 
     /**
      * Finds all active posts in the database.
      * @returns A promise that resolves to an array of Post documents.
      */
-    async findAll(): Promise<PostDocument[]> {
-        return this.postModel
-            .find({ deletedAt: null })
-            .populate('author', '_id email')
-            .exec();
+    async findAll(query: PaginationDto): Promise<PaginationResult<PostDocument>> {
+        return this.paginationService.paginate(
+            this.postModel,
+            query.page,
+            query.limit,
+            [{ path: 'author', select: '_id email' }],
+            { deletedAt: null },
+        );
     }
 
     /**
