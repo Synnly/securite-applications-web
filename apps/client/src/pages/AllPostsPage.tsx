@@ -5,12 +5,18 @@ import { PostCard } from '../components/post/PostCard.tsx';
 import type { Post } from '../modules/types/post.type.ts';
 import Spinner from '../components/ui/spinner/Spinner.tsx';
 import { Pagination } from '../components/pagination/Pagination.tsx';
+import { useLoaderData } from 'react-router';
 
-export const AllPostsPage = () => {
-    const { isLoading } = UseFetchPosts();
+export async function AllPostsLoader() {
     const data = postStore((state) => state.posts);
     const pagination = postStore((state) => state.pagination);
     const setFilters = postStore((state) => state.setFilters);
+    return { data, pagination, setFilters };
+}
+
+export const AllPostsPage = () => {
+    const { isLoading } = UseFetchPosts();
+    const { data, pagination, setFilters } = useLoaderData();
 
     const handlePageChange = (page: number) => {
         setFilters({ page });
@@ -22,7 +28,7 @@ export const AllPostsPage = () => {
             {isLoading ? (
                 <Spinner />
             ) : (
-                <div className="flex flex-col w-full px-60 py-10 gap-3">
+                <div className="flex flex-col w-full p-3 lg:px-60 lg:py-10 gap-3">
                     {data &&
                         data.map((post: Post) => (
                             <PostCard key={post.id} post={post} />

@@ -7,7 +7,7 @@ import { notAuthenticatedMiddleWare } from './modules/middlewares/notAuthenticat
 import { SigninPage } from './pages/SigninPage.tsx';
 import { protectedMiddleware } from './modules/middlewares/protectedMiddleware.ts';
 import { AuthRoutes } from './components/auth/AuthRoutes.tsx';
-import { AllPostsPage } from './pages/AllPostsPage.tsx';
+import { AllPostsLoader, AllPostsPage } from './pages/AllPostsPage.tsx';
 import { ToastContainer } from 'react-toastify';
 import { PostPage } from './pages/PostPage.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
@@ -53,6 +53,7 @@ function App() {
                         {
                             path: '/posts',
                             element: <AllPostsPage />,
+                            loader: AllPostsLoader,
                         },
                         {
                             path: '/post/:postId',

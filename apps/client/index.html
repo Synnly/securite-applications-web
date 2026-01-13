@@ -1,12 +1,21 @@
 <!doctype html>
 <html lang="en" data-theme="dark" data-color-mode="dark">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SAW</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <style>
+        :root {
+            background-color: oklch(25.33% 0.016 252.42);
+        }
+        body {
+            background-color: oklch(25.33% 0.016 252.42);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
+</body>
 </html>

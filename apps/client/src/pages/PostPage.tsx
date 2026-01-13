@@ -40,8 +40,8 @@ export const PostPage = () => {
                 <Spinner />
             ) : (
                 <>
-                    <div className="flex flex-col w-full px-60 py-10 gap-4">
-                        <div className="text-4xl font-medium">
+                    <div className="flex flex-col w-full p-4 lg:px-60 lg:py-10 gap-4">
+                        <div className="text-2xl lg:text-4xl font-medium">
                             {post?.title}
                         </div>
                         <div className="text-base-content/70 italic">
@@ -50,7 +50,7 @@ export const PostPage = () => {
                                 post?.createdAt ?? '',
                             ).toLocaleDateString()}
                         </div>
-                        <div className="mt-4 prose prose-lg max-w-none [&_.wmde-markdown]:bg-transparent! [&_.wmde-markdown]:p-0! [&_.wmde-markdown-var]:bg-transparent! **:bg-transparent!">
+                        <div className="prose prose-lg max-w-none [&_.wmde-markdown]:bg-transparent! [&_.wmde-markdown]:p-0! [&_.wmde-markdown-var]:bg-transparent! **:bg-transparent!">
                             <MDEditor.Markdown source={post?.body ?? ''} />
                         </div>
                         <div className="w-full">

@@ -17,7 +17,7 @@ export const PostCard = ({ post }: Props) => {
         >
             <a href={`/post/${post.id}`}>
                 <div className="card-body">
-                    <div className="flex flex-row gap-4">
+                    <div className="flex flex-col lg:flex-row gap-4">
                         <div className="flex flex-col gap-2 flex-1 min-w-0">
                             <div className="card-title truncate block">
                                 {post.title}
@@ -26,11 +26,14 @@ export const PostCard = ({ post }: Props) => {
                                 {stripMarkdown(ellipsedBody)}
                             </div>
                         </div>
-                        <div className="flex flex-col justify-between shrink-0">
-                            <div className="flex whitespace-nowrap items-center gap-2">
-                                <User size={16} /> {post.author.email}
+                        <div className="flex lg:flex-col justify-between shrink-0 w-full lg:w-auto gap-2 lg:items-end lg:mt-0">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <User size={16} className="shrink-0" />
+                                <div className="truncate text-sm lg:max-w-50">
+                                    {post.author.email}
+                                </div>
                             </div>
-                            <div className="flex whitespace-nowrap items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0 text-sm whitespace-nowrap">
                                 <Clock size={16} />{' '}
                                 {new Date(post.createdAt).toLocaleDateString()}
                             </div>
