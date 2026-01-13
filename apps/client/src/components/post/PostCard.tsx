@@ -11,7 +11,10 @@ export const PostCard = ({ post }: Props) => {
         post.body.length > 150 ? post.body.slice(0, 150) + '...' : post.body;
 
     return (
-        <div className="card p-2 w-full bg-base-100 shadow-md shadow-base-300 cursor-pointer hover:scale-101 duration-200 transition-transform ease-in-out active:scale-99">
+        <div
+            className="card p-2 w-full bg-base-100 shadow-md shadow-base-300 cursor-pointer hover:scale-101
+        duration-200 transition-transform ease-in-out active:scale-99 border border-base-300"
+        >
             <a href={`/post/${post.id}`}>
                 <div className="card-body">
                     <div className="flex flex-row gap-4">

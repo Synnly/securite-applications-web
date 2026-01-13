@@ -12,6 +12,7 @@ import { ToastContainer } from 'react-toastify';
 import { PostPage } from './pages/PostPage.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
 import { LandingPage } from './pages/LandingPage.tsx';
+import { DarkModeProvider } from './components/darkMode/DarkModeProvider.tsx';
 
 function App() {
     userStore.persist.rehydrate();
@@ -66,8 +67,10 @@ function App() {
     const router = createBrowserRouter(route);
     return (
         <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router} />
-            <ToastContainer position="top-right" theme="light" />
+            <DarkModeProvider>
+                <RouterProvider router={router} />
+                <ToastContainer position="top-right" theme="light" />
+            </DarkModeProvider>
         </QueryClientProvider>
     );
 }

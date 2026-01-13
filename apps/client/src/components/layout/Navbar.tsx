@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { CreatePostModal } from '../post/CreatePostModal.tsx';
 import { useState } from 'react';
+import { ToggleDarkMode } from '../darkMode/DarkModeToggle.tsx';
 
 export const Navbar = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,6 +15,7 @@ export const Navbar = () => {
                     </a>
 
                     <div className="flex gap-4">
+                        <ToggleDarkMode />
                         <button
                             className="btn btn-primary"
                             onClick={() => setIsModalOpen(true)}
