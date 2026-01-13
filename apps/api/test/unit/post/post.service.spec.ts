@@ -91,6 +91,7 @@ describe('PostService', () => {
                 1,
                 10,
                 [{ path: 'author', select: '_id email' }],
+                { deletedAt: null },
             );
         });
     });

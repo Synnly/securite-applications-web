@@ -106,7 +106,7 @@ describe('CommentService', () => {
                 1,
                 10,
                 [{ path: 'author', select: '_id email' }],
-                { post: mockPostId },
+                { deletedAt: null, post: mockPostId },
             );
         });
 
