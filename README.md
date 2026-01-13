@@ -95,7 +95,7 @@ npm run start:prod
 
 ### Frontend
 Pour déployer le frontend, il suffit de servir les fichiers statiques générés dans le dossier `dist` après le build dans
-le bon dossier de NGINX.
+le bon dossier du serveur HTTP.
 
 
 [Revenir en haut](#sommaire)
