@@ -40,7 +40,7 @@ function App() {
                     handle: { title: 'Connectez-vous' },
                 },
                 {
-                    load: notAuthenticatedMiddleWare,
+                    loader: notAuthenticatedMiddleWare,
                     path: 'signup',
                     element: <RegisterPage />,
                     handle: { title: "S'inscrire" },
