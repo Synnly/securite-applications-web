@@ -1,35 +1,79 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import './App.css';
+import { userStore } from './stores/userStore.ts';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createBrowserRouter, redirect, RouterProvider } from 'react-router';
+import MainLayout from './components/layout/MainLayout.tsx';
+import { notAuthenticatedMiddleWare } from './modules/middlewares/notAuthenticated.middleware.ts';
+import { SigninPage } from './pages/SigninPage.tsx';
+import { protectedMiddleware } from './modules/middlewares/protectedMiddleware.ts';
+import { AuthRoutes } from './components/auth/AuthRoutes.tsx';
+import { AllPostsLoader, AllPostsPage } from './pages/AllPostsPage.tsx';
+import { ToastContainer } from 'react-toastify';
+import { PostPage } from './pages/PostPage.tsx';
+import { RegisterPage } from './pages/RegisterPage.tsx';
+import { LandingPage } from './pages/LandingPage.tsx';
+import { DarkModeProvider } from './components/darkMode/DarkModeProvider.tsx';
 
 function App() {
-  const [count, setCount] = useState(0)
+    userStore.persist.rehydrate();
+    const queryClient = new QueryClient();
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const route = [
+        {
+            element: <MainLayout />,
+            children: [
+                {
+                    path: 'logout',
+                    loader: () => {
+                        userStore.getState().logout();
+                        return redirect('/signin');
+                    },
+                },
+                {
+                    loader: notAuthenticatedMiddleWare,
+                    path: '/',
+                    element: <LandingPage />,
+                },
+                {
+                    loader: notAuthenticatedMiddleWare,
+                    path: 'signin',
+                    element: <SigninPage />,
+                    handle: { title: 'Connectez-vous' },
+                },
+                {
+                    loader: notAuthenticatedMiddleWare,
+                    path: 'signup',
+                    element: <RegisterPage />,
+                    handle: { title: "S'inscrire" },
+                },
+                {
+                    loader: protectedMiddleware,
+                    element: <AuthRoutes />,
+                    children: [
+                        {
+                            path: '/posts',
+                            element: <AllPostsPage />,
+                            loader: AllPostsLoader,
+                        },
+                        {
+                            path: '/post/:postId',
+                            element: <PostPage />,
+                        },
+                    ],
+                },
+            ],
+        },
+    ];
+
+    const router = createBrowserRouter(route);
+    return (
+        <QueryClientProvider client={queryClient}>
+            <DarkModeProvider>
+                <RouterProvider router={router} />
+                <ToastContainer position="top-right" theme="light" />
+            </DarkModeProvider>
+        </QueryClientProvider>
+    );
 }
 
-export default App
+export default App;
