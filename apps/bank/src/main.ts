@@ -1,13 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import cookieParser from 'cookie-parser';
+import path from 'path';
+import fs from 'fs';
+import { Request, Response } from 'express';
+import { ConsoleLogger } from '@nestjs/common';
+import { AccountService } from './account/account.service';
 import { doubleCsrf } from 'csrf-csrf';
 import helmet from 'helmet';
-import { Request, Response } from 'express';
-import * as fs from 'fs';
-import path from 'path';
-import { ConsoleLogger } from '@nestjs/common';
-import { SeedService } from './seed/seed.service';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const keyPath = path.join(__dirname, '../keys/key.pem');
@@ -18,7 +18,6 @@ async function bootstrap() {
             `Fichiers TLS manquants. Vérifiez la présence de ${keyPath} et ${certPath}`,
         );
     }
-
     const httpsOptions = {
         key: fs.readFileSync(keyPath),
         cert: fs.readFileSync(certPath),
@@ -36,11 +35,15 @@ async function bootstrap() {
         logger: logger,
     });
 
-    const seedService = app.get(SeedService);
+    const accountService = app.get(AccountService);
     try {
-        await seedService.run();
+        await accountService.seedAccounts();
     } catch (error) {
-        logger.error('Seeding failed during bootstrap:', error, 'SeedService');
+        logger.error(
+            'Seeding accounts failed during bootstrap:',
+            error,
+            'AccountService',
+        );
     }
 
     app.use(
@@ -60,12 +63,12 @@ async function bootstrap() {
         getSecret: () => process.env.CSRF_SECRET!,
         getSessionIdentifier: (req: any) => {
             return (
-                req.cookies?.['__Host-psifi.session-api'] ??
+                req.cookies?.['__Host-psifi.session-bank'] ??
                 req.cookies?.sessionId ??
                 ''
             );
         },
-        cookieName: '__Host-psifi.x-csrf-token-api',
+        cookieName: '__Host-psifi.x-csrf-token-bank',
         cookieOptions: {
             sameSite: 'lax',
             path: '/',
@@ -75,20 +78,17 @@ async function bootstrap() {
         size: 64,
         ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
         getCsrfTokenFromRequest: (req: any) =>
-            req.cookies?.['__Host-psifi.x-csrf-token-api'],
+            req.cookies?.['__Host-psifi.x-csrf-token-bank'],
     });
 
-    if (!process.env.FRONTEND_URL) throw new Error('FRONTEND_URL is not set.');
+    if (!process.env.CORS_URL) throw new Error('CORS_URL is not set.');
 
     app.enableCors({
-        origin: process.env.FRONTEND_URL!,
+        origin: process.env.CORS_URL,
         credentials: true,
     });
 
-    logger.log(
-        `CORS enabled for : ${process.env.FRONTEND_URL}`,
-        'InstanceLoader',
-    );
+    logger.log(`CORS enabled for : ${process.env.CORS_URL}`, 'InstanceLoader');
 
     app.use(cookieParser());
 
