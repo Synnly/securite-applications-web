@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
@@ -6,6 +7,7 @@ import {
     HttpStatus,
     Param,
     Post,
+    Query,
     ValidationPipe,
 } from '@nestjs/common';
 import { AccountDto } from './dto/account.dto';
@@ -32,8 +34,11 @@ export class AccountController {
             }),
         )
         dto: AccountDto,
-        @Param('amount') amount: number,
+        @Query('amount') amount: number,
     ): Promise<string> {
+        if (!amount || amount <= 0) {
+            throw new BadRequestException('Amount must be a positive number');
+        }
         const payment = await this.accountService.pay(dto, amount);
         return payment._id.toString();
     }
@@ -44,7 +49,7 @@ export class AccountController {
      * @throws{NotFoundException} if no payment exists with the given ID.
      * @throws{BadRequestException} if the payment has already been claimed.
      */
-    @Get('verify')
+    @Get('verify/:id')
     @HttpCode(HttpStatus.OK)
     async verify(@Param('id') id: string): Promise<void> {
         return this.accountService.verifyPayment(id);

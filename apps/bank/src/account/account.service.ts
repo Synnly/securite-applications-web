@@ -18,45 +18,17 @@ export class AccountService {
     ) {}
 
     /**
-     * Verifies the provided card credentials.
-     * @param dto The account details including card number, expiration date, and CVV.
-     * @throws BadRequestException if any of the credentials are invalid.
-     */
-    verifyCredentials(dto: AccountDto): void {
-        if (
-            !Number.isInteger(dto.cardNumber) ||
-            dto.cardNumber.toString().length !== 16
-        ) {
-            throw new BadRequestException('Invalid card number');
-        }
-
-        if (!Number.isInteger(dto.cvv) || dto.cvv.toString().length !== 3) {
-            throw new BadRequestException('Invalid CVV');
-        }
-
-        if (
-            !/^(0[1-9]|1[0-2])\/(0[1-9]|[1-2][0-9]|3[0-1])$/.test(
-                dto.expirationDate,
-            )
-        ) {
-            throw new BadRequestException('Invalid expiration date format');
-        }
-    }
-
-    /**
      * Creates a new account with the provided details. The account details are hashed before storage for security.
      * @param dto The account details including card number, expiration date, and CVV.
      * @param balance The initial balance of the account. Must be a non-negative number.
      */
     async createAccount(dto: AccountDto, balance: number): Promise<void> {
-        this.verifyCredentials(dto);
-
         if (balance < 0) {
             throw new BadRequestException('Balance cannot be negative');
         }
 
         const account = new this.accountModel({
-            cardNumber: dto.cardNumber,
+            cardNumber: Number.parseInt(dto.cardNumber),
             expirationDate: dto.expirationDate,
             cvv: dto.cvv,
             balance,
@@ -71,19 +43,21 @@ export class AccountService {
      * @throws BadRequestException if the credentials are invalid, the account is not found, or there are insufficient funds.
      */
     async pay(dto: AccountDto, amount: number): Promise<PaymentDocument> {
-        this.verifyCredentials(dto);
-
         const account = await this.accountModel.findOne({
-            cardNumber: dto.cardNumber,
+            cardNumber: Number.parseInt(dto.cardNumber),
         });
         if (!account) {
             throw new NotFoundException('Account not found');
         }
 
-        await Promise.all([
+        const [expMatch, cvvMatch] = await Promise.all([
             bcrypt.compare(dto.expirationDate, account.expirationDate),
             bcrypt.compare(dto.cvv.toString(), account.cvv),
-        ]).catch(() => new NotFoundException('Account not found'));
+        ]);
+
+        if (!expMatch || !cvvMatch) {
+            throw new NotFoundException('Account not found');
+        }
 
         if (account.balance < amount) {
             throw new BadRequestException('Insufficient balance');
@@ -129,37 +103,37 @@ export class AccountService {
             {
                 cardNumber: 1234567812345678,
                 expirationDate: '12/25',
-                cvv: 123,
+                cvv: '123',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
                 cardNumber: 8765432187654321,
                 expirationDate: '11/24',
-                cvv: 456,
+                cvv: '456',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
                 cardNumber: 4000000000000002,
                 expirationDate: '10/26',
-                cvv: 789,
+                cvv: '789',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
                 cardNumber: 4111111111111111,
                 expirationDate: '09/27',
-                cvv: 321,
+                cvv: '321',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
                 cardNumber: 5555555555554444,
                 expirationDate: '08/28',
-                cvv: 654,
+                cvv: '654',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
                 cardNumber: 5105105105105100,
                 expirationDate: '07/29',
-                cvv: 987,
+                cvv: '987',
                 balance: Math.floor(Math.random() * 10000),
             },
         ];

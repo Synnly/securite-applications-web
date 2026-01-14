@@ -26,7 +26,7 @@ export class Payment {
     /**
      * Date when the payment was claimed
      */
-    @Prop({ required: true })
+    @Prop({ required: false })
     claimDate: Date;
 }
 
