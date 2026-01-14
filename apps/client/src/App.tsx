@@ -13,6 +13,8 @@ import { PostPage } from './pages/PostPage.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
 import { LandingPage } from './pages/LandingPage.tsx';
 import { DarkModeProvider } from './components/darkMode/DarkModeProvider.tsx';
+import { adminMiddleware } from './modules/middlewares/adminMiddleware.ts';
+import AdminDashboard from './pages/AdminDashboard.tsx';
 
 function App() {
     userStore.persist.rehydrate();
@@ -57,6 +59,15 @@ function App() {
                         {
                             path: '/post/:postId',
                             element: <PostPage />,
+                        },
+                        {
+                            loader: adminMiddleware,
+                            children: [
+                                {
+                                    path: '/admin',
+                                    element: <AdminDashboard />,
+                                },
+                            ],
                         },
                     ],
                 },
