@@ -53,6 +53,7 @@ export const UseAuthFetch = () => {
             if (err instanceof Error && err.message === 'FORBIDDEN') {
                 const csrfRes = await fetch(`${apiUrl}/csrf-token`, {
                     method: 'GET',
+                    credentials: 'include',
                 });
 
                 if (!csrfRes.ok) {
