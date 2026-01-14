@@ -28,6 +28,7 @@ describe('UserController', () => {
             findAll: jest.fn(),
             findOne: jest.fn(),
             create: jest.fn(),
+            banUser: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
@@ -158,6 +159,43 @@ describe('UserController', () => {
             await expect(controller.create(createUserDto)).rejects.toThrow(
                 genericError,
             );
+        });
+    });
+
+    describe('banUser', () => {
+        it('should ban a user successfully', async () => {
+            mockUserService.findOne.mockResolvedValue(mockUser);
+            mockUserService.banUser.mockResolvedValue(true);
+
+            const result = await controller.banUser(userId.toString());
+
+            expect(result).toEqual({ success: true });
+            expect(mockUserService.findOne).toHaveBeenCalledWith(userId.toString());
+            expect(mockUserService.banUser).toHaveBeenCalledWith(userId.toString());
+        });
+
+        it('should throw NotFoundException if user does not exist', async () => {
+            mockUserService.findOne.mockResolvedValue(null);
+
+            await expect(controller.banUser('non-existent-id')).rejects.toThrow(
+                NotFoundException,
+            );
+            await expect(controller.banUser('non-existent-id')).rejects.toThrow(
+                'User with id non-existent-id not found',
+            );
+            expect(mockUserService.findOne).toHaveBeenCalledWith('non-existent-id');
+            expect(mockUserService.banUser).not.toHaveBeenCalled();
+        });
+
+        it('should return success false if user exists but ban operation fails', async () => {
+            mockUserService.findOne.mockResolvedValue(mockUser);
+            mockUserService.banUser.mockResolvedValue(false);
+
+            const result = await controller.banUser(userId.toString());
+
+            expect(result).toEqual({ success: false });
+            expect(mockUserService.findOne).toHaveBeenCalledWith(userId.toString());
+            expect(mockUserService.banUser).toHaveBeenCalledWith(userId.toString());
         });
     });
 });

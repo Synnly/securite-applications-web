@@ -8,6 +8,7 @@ import {
     NotFoundException,
     Param,
     Post,
+    Put,
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
@@ -91,5 +92,26 @@ export class UserController {
                 throw error;
             }
         }
+    }
+
+    /**
+     * Bans a user by setting its deletedAt field
+     * @param userId The user identifier
+     * @throws {NotFoundException} if no user exists with the given ID
+     *
+     */
+    @Put(':userId/ban')
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
+    @HttpCode(HttpStatus.OK)
+    async banUser(
+        @Param('userId', ParseObjectIdPipe) userId: string,
+    ): Promise<{ success: boolean }> {
+        const user = await this.userService.findOne(userId);
+        if (!user)
+            throw new NotFoundException(`User with id ${userId} not found`);
+
+        const success = await this.userService.banUser(userId);
+        return { success };
     }
 }

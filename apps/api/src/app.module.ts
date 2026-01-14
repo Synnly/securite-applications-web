@@ -9,6 +9,7 @@ import { PostModule } from './post/post.module';
 import { TokensMiddleware } from './common/middleware/tokens.middleware';
 import { CommentModule } from './comment/comment.module';
 import { SeedModule } from './seed/seed.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import { SeedModule } from './seed/seed.module';
         PostModule,
         CommentModule,
         SeedModule,
+        AdminModule,
     ],
     controllers: [],
     providers: [

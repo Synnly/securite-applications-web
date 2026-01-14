@@ -54,4 +54,18 @@ export class UserService {
             .countDocuments({ role, deletedAt: { $exists: false } })
             .exec();
     }
+
+    /**
+     * Bans a user by setting its deletedAt field
+     * @param userId The user identifier
+     * @returns A promise that resolves to true if the user was successfully banned, false otherwise
+     */
+    async banUser(userId: string): Promise<boolean> {
+        const result = await this.userModel.updateOne(
+            { _id: userId },
+            { $set: { deletedAt: new Date() } },
+        ).exec();
+        return result.modifiedCount > 0;
+    }
+
 }

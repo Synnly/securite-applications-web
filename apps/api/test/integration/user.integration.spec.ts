@@ -183,4 +183,88 @@ describe('UserModule (Integration)', () => {
             await request(app.getHttpServer()).get(`/user/${id}`).expect(404);
         });
     });
+
+    describe('PUT /user/:userId/ban', () => {
+        it('should ban a user successfully', async () => {
+            const user = await new userModel(validUserDto).save();
+            const id = user._id.toString();
+
+            const response = await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+
+            expect(response.body.success).toBe(true);
+
+            // Vérifier que l'utilisateur a bien été banni (deletedAt est défini)
+            const bannedUser = await userModel.findById(id);
+            expect(bannedUser).toBeDefined();
+            expect(bannedUser!.deletedAt).toBeDefined();
+            expect(bannedUser!.deletedAt).toBeInstanceOf(Date);
+        });
+
+        it('should return 404 if user to ban does not exist', async () => {
+            const fakeId = new Types.ObjectId().toString();
+
+            await request(app.getHttpServer())
+                .put(`/user/${fakeId}/ban`)
+                .expect(404);
+        });
+
+        it('should return 400 if user ID is invalid', async () => {
+            await request(app.getHttpServer())
+                .put('/user/invalid-id-format/ban')
+                .expect(400);
+        });
+
+        it('should exclude banned user from GET /user list', async () => {
+            const user1 = await new userModel(validUserDto).save();
+            const user2 = await new userModel({
+                ...validUserDto,
+                email: 'user2@example.com',
+            }).save();
+
+            // Bannir le premier utilisateur
+            await request(app.getHttpServer())
+                .put(`/user/${user1._id.toString()}/ban`)
+                .expect(200);
+
+            // Vérifier que seul le deuxième utilisateur est retourné
+            const response = await request(app.getHttpServer())
+                .get('/user')
+                .expect(200);
+
+            expect(response.body.length).toBe(1);
+            expect(response.body[0].email).toEqual('user2@example.com');
+        });
+
+        it('should exclude banned user from GET /user/:userId', async () => {
+            const user = await new userModel(validUserDto).save();
+            const id = user._id.toString();
+
+            // Bannir l'utilisateur
+            await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+
+            // Essayer de récupérer l'utilisateur banni
+            await request(app.getHttpServer())
+                .get(`/user/${id}`)
+                .expect(404);
+        });
+
+        it('should return 404 when trying to ban an already banned user', async () => {
+            const user = await new userModel(validUserDto).save();
+            const id = user._id.toString();
+
+            // Premier bannissement
+            await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+
+            // Deuxième bannissement devrait retourner 404 car findOne ne trouve plus l'utilisateur banni
+            await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(404);
+        });
+    });
 });
