@@ -87,7 +87,9 @@ describe('AccountModule (Integration)', () => {
             });
             expect(updatedAccount.balance).toBe(initialBalance - amount);
 
-            const payment = await paymentModel.findById(response.text);
+            const payment = await paymentModel.findById(
+                JSON.parse(response.text)._id,
+            );
             expect(payment).toBeDefined();
             expect(payment.amount).toBe(amount);
             expect(payment.claimDate).toBeUndefined(); // Not yet verified

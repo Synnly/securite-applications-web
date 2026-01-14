@@ -35,12 +35,12 @@ export class AccountController {
         )
         dto: AccountDto,
         @Query('amount') amount: number,
-    ): Promise<string> {
+    ): Promise<{ _id: string; amount: number }> {
         if (!amount || amount <= 0) {
             throw new BadRequestException('Amount must be a positive number');
         }
         const payment = await this.accountService.pay(dto, amount);
-        return payment._id.toString();
+        return { _id: payment._id.toString(), amount: payment.amount };
     }
 
     /**

@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     Injectable,
+    Logger,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -16,6 +17,8 @@ export class AccountService {
         @InjectModel(Account.name) private accountModel: Model<AccountDocument>,
         @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
     ) {}
+
+    private readonly logger = new Logger(AccountService.name);
 
     /**
      * Creates a new account with the provided details. The account details are hashed before storage for security.
@@ -149,6 +152,6 @@ export class AccountService {
                 count++;
             }
         }
-        console.log(`Seeded ${count} accounts`);
+        this.logger.log(`Seeded ${count} accounts`);
     }
 }

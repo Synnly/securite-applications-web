@@ -52,7 +52,7 @@ describe('AccountController', () => {
 
             const result = await controller.pay(dto, amount);
 
-            expect(result).toBe(mockPaymentId);
+            expect(result).toEqual({ _id: mockPaymentId, amount });
             expect(mockAccountService.pay).toHaveBeenCalledWith(dto, amount);
         });
 
