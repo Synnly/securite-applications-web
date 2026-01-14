@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { userStore } from '../stores/userStore';
 import { useLocation, useNavigate } from 'react-router';
 import type {FormLogin} from "../modules/types/formLogin.type.ts";
+import { UseAuthFetch } from './authFetch.ts';
 
 /**
  * Translate error messages from the API to French.
@@ -27,17 +28,15 @@ export const UseLogin = () => {
     const navigate = useNavigate();
     const lastLocationRoute = lastLocation.state?.from;
     const API_URL = import.meta.env.VITE_APIURL;
+    const authFetch = UseAuthFetch();
     if (!API_URL) throw new Error('API URL is not configured');
 
     const { mutateAsync, isPending, isError, error, reset } = useMutation({
         mutationFn: async (data: FormLogin) => {
-            const res = await fetch(`${API_URL}/auth/login`, {
+            
+            const res =  await authFetch(`${API_URL}/auth/login`, {
                 method: 'POST',
-                body: JSON.stringify(data),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
+                data: JSON.stringify(data),
             });
             if (!res.ok) {
                 const message = await res.json();
