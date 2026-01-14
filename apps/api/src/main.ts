@@ -78,17 +78,14 @@ async function bootstrap() {
             req.cookies?.['__Host-psifi.x-csrf-token-api'],
     });
 
-    if (!process.env.FRONTEND_URL) throw new Error('FRONTEND_URL is not set.');
+    if (!process.env.CORS_URL) throw new Error('CORS_URL is not set.');
 
     app.enableCors({
-        origin: process.env.FRONTEND_URL!,
+        origin: process.env.CORS_URL!,
         credentials: true,
     });
 
-    logger.log(
-        `CORS enabled for : ${process.env.FRONTEND_URL}`,
-        'InstanceLoader',
-    );
+    logger.log(`CORS enabled for : ${process.env.CORS_URL}`, 'InstanceLoader');
 
     app.use(cookieParser());
 
