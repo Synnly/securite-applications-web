@@ -6,7 +6,7 @@ export const DonatePage = () => {
         <>
             <Navbar />
             <div className="flex flex-col gap-10 justify-center items-center h-screen">
-                <h1 className="font-bold text-4xl">Donate
+                <h1 className="font-bold text-4xl">
                     Faites un don pour soutenir notre site !
                 </h1>
                 <div>
