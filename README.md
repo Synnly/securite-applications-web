@@ -109,7 +109,7 @@ Les variables d'environnement doivent être configurées dans des fichiers `.env
 
 ### Backend & application bancaire
 1. `DATABASE_URL` : URL de connexion à la base de données MongoDB (ex: mongodb://localhost:27017/ma_base)
-2. `CORS_URL` : URLs des applications accédant au serveur (ex: http://localhost:8080). Peut être une liste séparée par des virgules. **IMPORTANT** : l'application bancaire doit accepter les requêtes du backend ET du frontend.
+2. `CORS_URL` : URLs des applications accédant au serveur (ex: http://localhost:8080). Peut être une liste d'URLs séparée par des point-virgules sans espace. **IMPORTANT** : l'application bancaire doit accepter les requêtes du backend ET du frontend.
 3. `PORT` : Port sur lequel le serveur backend écoute (ex: 3000).
 4. `ACCESS_TOKEN_SECRET` : Clé secrète pour signer les tokens d'accès JWT. Clé de 64 caractères minimum recommandée.
 5. `REFRESH_TOKEN_SECRET` : Clé secrète pour signer les tokens de rafraîchissement JWT. Clé de 64 caractères minimum recommandée.

@@ -21,7 +21,7 @@ export const LoginForm = () => {
     };
 
     return (
-        <div className="card flex-col flex items-center just p-10 shadow-xl shadow-base-300">
+        <div className="card flex-col flex items-center just p-10 shadow-xl shadow-base-300 border border-base-300 min-w-1/3">
             <CustomForm
                 label="Accéder à votre compte"
                 role="form"

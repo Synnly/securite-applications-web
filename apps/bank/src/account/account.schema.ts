@@ -45,11 +45,15 @@ AccountSchema.pre('save', async function () {
     if (!this.cvv) throw new Error('CVV is missing');
 
     try {
-        this.expirationDate = await bcrypt.hash(
-            this.expirationDate,
-            await bcrypt.genSalt(10),
-        );
-        this.cvv = await bcrypt.hash(this.cvv, await bcrypt.genSalt(10));
+        if (this.isModified('expirationDate')) {
+            this.expirationDate = await bcrypt.hash(
+                this.expirationDate,
+                await bcrypt.genSalt(10),
+            );
+        }
+        if (this.isModified('cvv')) {
+            this.cvv = await bcrypt.hash(this.cvv, await bcrypt.genSalt(10));
+        }
     } catch (error) {
         throw error;
     }

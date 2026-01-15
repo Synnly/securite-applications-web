@@ -13,6 +13,8 @@ import { PostPage } from './pages/PostPage.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
 import { LandingPage } from './pages/LandingPage.tsx';
 import { DarkModeProvider } from './components/darkMode/DarkModeProvider.tsx';
+import {DonatePage} from "./pages/DonatePage.tsx";
+import {DonationSucessPage} from "./pages/DonationSucessPage.tsx";
 
 function App() {
     userStore.persist.rehydrate();
@@ -58,6 +60,19 @@ function App() {
                             path: '/post/:postId',
                             element: <PostPage />,
                         },
+                        {
+                            path: 'donate',
+                            children: [
+                                {
+                                    index: true,
+                                    element: <DonatePage />,
+                                },
+                                {
+                                    path: 'success',
+                                    element: <DonationSucessPage/>
+                                }
+                            ]
+                        }
                     ],
                 },
             ],

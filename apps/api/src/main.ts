@@ -81,11 +81,14 @@ async function bootstrap() {
     if (!process.env.CORS_URL) throw new Error('CORS_URL is not set.');
 
     app.enableCors({
-        origin: process.env.CORS_URL!,
+        origin: process.env.CORS_URL.split(';'),
         credentials: true,
     });
 
-    logger.log(`CORS enabled for : ${process.env.CORS_URL}`, 'InstanceLoader');
+    logger.log(
+        `CORS enabled for : ${process.env.CORS_URL.split(';')}`,
+        'InstanceLoader',
+    );
 
     app.use(cookieParser());
 
