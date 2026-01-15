@@ -22,7 +22,7 @@ const {
         isPending,
         isError,
         error,
-        reset,
+        reset
     } = UseDonation();
 
     const onSubmit = async (data: formDonation) => {

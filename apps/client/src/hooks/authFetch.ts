@@ -31,7 +31,7 @@ export const UseAuthFetch = () => {
                 if (!res.ok) {
                     if (res.status === 401) throw new Error('UNAUTHORIZED');
                     if (res.status === 403) throw new Error('FORBIDDEN');
-                    throw new Error(`Erreur ${res.status}`);
+                    throw new Error(JSON.parse(await res.text()).message || 'Erreur lors de la requête');
                 }
 
                 return res;

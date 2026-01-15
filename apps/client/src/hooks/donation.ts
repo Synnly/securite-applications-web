@@ -1,5 +1,5 @@
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import {useMutation} from '@tanstack/react-query';
+import {useNavigate} from 'react-router';
 import type {formDonation} from "../modules/types/formDonation.type.ts";
 import {UseAuthFetch} from "./authFetch.ts";
 
@@ -19,18 +19,17 @@ export const UseDonation = () => {
         }) => {
             const authFetch = UseAuthFetch();
             const { amount, ...rest } = data;
-            const res = await authFetch(`${BANK_URL}/account/pay?amount=${amount}`, {
-                method: 'POST',
-                data: JSON.stringify(rest),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!res.ok) {
-                const message = await res.json();
-                throw new Error(message.message);
+            try {
+                return await authFetch(`${BANK_URL}/account/pay?amount=${amount}`, {
+                    method: 'POST',
+                    data: JSON.stringify(rest),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+            } catch (error: any) {
+                throw new Error(translateError(error?.message));
             }
-            return res;
         },
     });
 
@@ -38,14 +37,26 @@ export const UseDonation = () => {
         const res = await mutateAsync(data);
         let _id;
         let paidAmount;
+        const json = (await res.json());
         if (res.ok) {
-            const json = (await res.json());
             _id = json._id;
-            console.log(json);
             paidAmount = json.amount;
             navigate(`/donate/success?_id=${_id}&amount=${paidAmount}`);
         }
     };
+
+    const translateError = (error?: string) => {
+        if(!error) return;
+        console.log(error);
+        switch (error) {
+            case 'Insufficient balance':
+                return "Erreur : Fonds insuffisants";
+            case 'Account not found':
+                return "Erreur : Compte non trouvé";
+            default:
+                return "Une erreur est survenue. Veuillez réessayer.";
+        }
+    }
 
     return { register, isPending, isError, error, reset };
 };
