@@ -27,8 +27,8 @@ export class UserController {
     constructor(private readonly userService: UserService) {}
 
     /**
-     * Retrieves all companies
-     * @returns An array of all companies
+     * Retrieves all users with USER role (excluding admins)
+     * @returns An array of regular users for ban/unban management
      */
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(Role.ADMIN)

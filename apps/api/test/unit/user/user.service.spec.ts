@@ -46,7 +46,7 @@ describe('UserService', () => {
     });
 
     describe('findAll', () => {
-        it('should return an array of users that are not soft-deleted', async () => {
+        it('should return an array of users with USER role that are not soft-deleted', async () => {
             const expectedUsers = [mockUser];
             mockUserModel.find.mockReturnValue({
                 exec: jest.fn().mockResolvedValue(expectedUsers),
@@ -57,6 +57,7 @@ describe('UserService', () => {
             expect(result).toEqual(expectedUsers);
             expect(mockUserModel.find).toHaveBeenCalledWith({
                 deletedAt: { $exists: false },
+                role: Role.USER,
             });
             expect(mockUserModel.find).toHaveBeenCalledTimes(1);
         });
@@ -206,7 +207,9 @@ describe('UserService', () => {
                 exec: jest.fn().mockRejectedValue(error),
             });
 
-            await expect(service.banUser(userId.toString())).rejects.toThrow(error);
+            await expect(service.banUser(userId.toString())).rejects.toThrow(
+                error,
+            );
         });
     });
 
@@ -268,7 +271,9 @@ describe('UserService', () => {
                 exec: jest.fn().mockRejectedValue(error),
             });
 
-            await expect(service.unbanUser(userId.toString())).rejects.toThrow(error);
+            await expect(service.unbanUser(userId.toString())).rejects.toThrow(
+                error,
+            );
         });
     });
 });

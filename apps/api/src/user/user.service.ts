@@ -12,11 +12,15 @@ export class UserService {
     ) {}
 
     /**
-     * Finds all users that are not soft-deleted.
-     * @returns A promise that resolves to an array of User documents.
+     * Finds all users with USER role that are not soft-deleted.
+     * Only returns regular users (not admins) for ban/unban management.
+     * @returns A promise that resolves to an array of User documents with USER role.
      */
     async findAll(): Promise<User[]> {
-        return this.userModel.find({ deletedAt: { $exists: false } }).exec();
+        return this.userModel.find({ 
+            deletedAt: { $exists: false },
+            role: Role.USER 
+        }).exec();
     }
 
     /**

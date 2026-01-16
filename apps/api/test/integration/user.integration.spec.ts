@@ -20,7 +20,7 @@ describe('UserModule (Integration)', () => {
     const validUserDto: CreateUserDto = {
         email: 'test@example.com',
         password: 'Password123!',
-        role: Role.ADMIN,
+        role: Role.USER,
     };
 
     beforeAll(async () => {
