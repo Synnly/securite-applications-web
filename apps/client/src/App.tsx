@@ -15,6 +15,8 @@ import { LandingPage } from './pages/LandingPage.tsx';
 import { DarkModeProvider } from './components/darkMode/DarkModeProvider.tsx';
 import { adminMiddleware } from './modules/middlewares/adminMiddleware.ts';
 import AdminDashboard from './pages/AdminDashboard.tsx';
+import { DonatePage } from './pages/DonatePage.tsx';
+import { DonationSucessPage } from './pages/DonationSucessPage.tsx';
 
 function App() {
     userStore.persist.rehydrate();
@@ -66,6 +68,19 @@ function App() {
                                 {
                                     path: '/admin',
                                     element: <AdminDashboard />,
+                                },
+                            ],
+                        },
+                        {
+                            path: 'donate',
+                            children: [
+                                {
+                                    index: true,
+                                    element: <DonatePage />,
+                                },
+                                {
+                                    path: 'success',
+                                    element: <DonationSucessPage />,
                                 },
                             ],
                         },
