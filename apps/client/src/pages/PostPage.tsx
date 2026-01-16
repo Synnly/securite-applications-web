@@ -41,17 +41,22 @@ export const PostPage = () => {
             ) : (
                 <>
                     <div className="flex flex-col w-full p-4 lg:px-60 lg:py-10 gap-4">
-                        <div className="text-2xl lg:text-4xl font-medium">
-                            {post?.title}
-                        </div>
-                        <div className="text-base-content/70 italic">
-                            Par {post?.author.email} le{' '}
-                            {new Date(
-                                post?.createdAt ?? '',
-                            ).toLocaleDateString()}
-                        </div>
-                        <div className="prose prose-lg max-w-none [&_.wmde-markdown]:bg-transparent! [&_.wmde-markdown]:p-0! [&_.wmde-markdown-var]:bg-transparent! **:bg-transparent!">
-                            <MDEditor.Markdown source={post?.body ?? ''} />
+                        <div className="card shadow-lg shadow-base-300 border border-base-300">
+                            <div className="card-body">
+                                <div className="text-2xl lg:text-4xl font-medium">
+                                    {post?.title}
+                                </div>
+                                <div className="text-base-content/70 italic">
+                                    Par {post?.author.email} le{' '}
+                                    {new Date(
+                                        post?.createdAt ?? '',
+                                    ).toLocaleDateString()}
+                                </div>
+                                <div className="prose prose-lg max-w-none [&_.wmde-markdown]:bg-transparent! [&_.wmde-markdown]:p-0!
+                                [&_.wmde-markdown-var]:bg-transparent! **:bg-transparent!">
+                                    <MDEditor.Markdown source={post?.body ?? ''} />
+                                </div>
+                            </div>
                         </div>
                         <div className="w-full">
                             <CommentInput postId={postId} />

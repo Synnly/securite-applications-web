@@ -31,7 +31,7 @@ export const UseAuthFetch = () => {
                 if (!res.ok) {
                     if (res.status === 401) throw new Error('UNAUTHORIZED');
                     if (res.status === 403) throw new Error('FORBIDDEN');
-                    throw new Error(`Erreur ${res.status}`);
+                    throw new Error(JSON.parse(await res.text()).message || 'Erreur lors de la requête');
                 }
 
                 return res;
@@ -51,7 +51,10 @@ export const UseAuthFetch = () => {
 
             // Handle CSRF token refresh
             if (err instanceof Error && err.message === 'FORBIDDEN') {
-                const csrfRes = await fetch(`${apiUrl}/csrf-token`, {
+                const baseUrl = new URL(url).origin;
+                console.log(baseUrl)
+
+                const csrfRes = await fetch(`${baseUrl}/csrf-token`, {
                     method: 'GET',
                     credentials: 'include',
                 });
