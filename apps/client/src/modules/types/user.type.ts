@@ -10,4 +10,5 @@ export interface SimplyUser {
   _id: string;
   email: string;
   createdAt: string;
+  bannedAt?: string;
 }

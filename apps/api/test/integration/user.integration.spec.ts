@@ -195,11 +195,11 @@ describe('UserModule (Integration)', () => {
 
             expect(response.body.success).toBe(true);
 
-            // Vérifier que l'utilisateur a bien été banni (deletedAt est défini)
+            // Vérifier que l'utilisateur a bien été banni (bannedAt est défini)
             const bannedUser = await userModel.findById(id);
             expect(bannedUser).toBeDefined();
-            expect(bannedUser!.deletedAt).toBeDefined();
-            expect(bannedUser!.deletedAt).toBeInstanceOf(Date);
+            expect(bannedUser!.bannedAt).toBeDefined();
+            expect(bannedUser!.bannedAt).toBeInstanceOf(Date);
         });
 
         it('should return 404 if user to ban does not exist', async () => {
@@ -216,7 +216,7 @@ describe('UserModule (Integration)', () => {
                 .expect(400);
         });
 
-        it('should exclude banned user from GET /user list', async () => {
+        it('should include banned user in GET /user list with bannedAt field', async () => {
             const user1 = await new userModel(validUserDto).save();
             await new userModel({
                 ...validUserDto,
@@ -228,16 +228,21 @@ describe('UserModule (Integration)', () => {
                 .put(`/user/${user1._id.toString()}/ban`)
                 .expect(200);
 
-            // Vérifier que seul le deuxième utilisateur est retourné
+            // Vérifier que les deux utilisateurs sont retournés
             const response = await request(app.getHttpServer())
                 .get('/user')
                 .expect(200);
 
-            expect(response.body.length).toBe(1);
-            expect(response.body[0].email).toEqual('user2@example.com');
+            expect(response.body.length).toBe(2);
+            // Trouver l'utilisateur banni dans la réponse
+            const bannedUserInList = response.body.find(
+                (u: any) => u.email === validUserDto.email,
+            );
+            expect(bannedUserInList).toBeDefined();
+            expect(bannedUserInList.bannedAt).toBeDefined();
         });
 
-        it('should exclude banned user from GET /user/:userId', async () => {
+        it('should still retrieve banned user from GET /user/:userId', async () => {
             const user = await new userModel(validUserDto).save();
             const id = user._id.toString();
 
@@ -246,25 +251,105 @@ describe('UserModule (Integration)', () => {
                 .put(`/user/${id}/ban`)
                 .expect(200);
 
-            // Essayer de récupérer l'utilisateur banni
-            await request(app.getHttpServer())
+            // Récupérer l'utilisateur banni - devrait réussir
+            const response = await request(app.getHttpServer())
                 .get(`/user/${id}`)
-                .expect(404);
+                .expect(200);
+
+            expect(response.body).toBeDefined();
+            expect(response.body.email).toEqual(validUserDto.email);
+            expect(response.body.bannedAt).toBeDefined();
         });
 
-        it('should return 404 when trying to ban an already banned user', async () => {
+        it('should allow banning an already banned user (idempotent)', async () => {
             const user = await new userModel(validUserDto).save();
             const id = user._id.toString();
 
             // Premier bannissement
+            const firstBan = await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+            expect(firstBan.body.success).toBe(true);
+
+            // Deuxième bannissement - MongoDB updateOne retourne modifiedCount 1 même si déjà banni
+            const secondBan = await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+            expect(secondBan.body.success).toBe(true);
+        });
+    });
+
+    describe('PUT /user/:userId/unban', () => {
+        it('should unban a banned user successfully', async () => {
+            const user = await new userModel({
+                ...validUserDto,
+                bannedAt: new Date(),
+            }).save();
+            const id = user._id.toString();
+
+            const response = await request(app.getHttpServer())
+                .put(`/user/${id}/unban`)
+                .expect(200);
+
+            expect(response.body.success).toBe(true);
+
+            // Vérifier que l'utilisateur n'est plus banni (bannedAt a été supprimé)
+            const unbannedUser = await userModel.findById(id);
+            expect(unbannedUser).toBeDefined();
+            expect(unbannedUser!.bannedAt).toBeUndefined();
+        });
+
+        it('should return 404 if user to unban does not exist', async () => {
+            const fakeId = new Types.ObjectId().toString();
+
             await request(app.getHttpServer())
+                .put(`/user/${fakeId}/unban`)
+                .expect(404);
+        });
+
+        it('should return 400 if user ID is invalid', async () => {
+            await request(app.getHttpServer())
+                .put('/user/invalid-id-format/unban')
+                .expect(400);
+        });
+
+        it('should allow unbanning a user that is not banned (idempotent)', async () => {
+            const user = await new userModel(validUserDto).save();
+            const id = user._id.toString();
+
+            // Dé-bannir un utilisateur qui n'est pas banni
+            const response = await request(app.getHttpServer())
+                .put(`/user/${id}/unban`)
+                .expect(200);
+
+            // MongoDB $unset retourne modifiedCount 1 même si le champ n'existe pas
+            expect(response.body.success).toBe(true);
+        });
+
+        it('should allow user to be banned again after being unbanned', async () => {
+            const user = await new userModel({
+                ...validUserDto,
+                bannedAt: new Date(),
+            }).save();
+            const id = user._id.toString();
+
+            // Dé-bannir l'utilisateur
+            await request(app.getHttpServer())
+                .put(`/user/${id}/unban`)
+                .expect(200);
+
+            // Bannir à nouveau l'utilisateur
+            const response = await request(app.getHttpServer())
                 .put(`/user/${id}/ban`)
                 .expect(200);
 
-            // Deuxième bannissement devrait retourner 404 car findOne ne trouve plus l'utilisateur banni
-            await request(app.getHttpServer())
-                .put(`/user/${id}/ban`)
-                .expect(404);
+            expect(response.body.success).toBe(true);
+
+            // Vérifier que l'utilisateur est à nouveau banni
+            const rebannedUser = await userModel.findById(id);
+            expect(rebannedUser).toBeDefined();
+            expect(rebannedUser!.bannedAt).toBeDefined();
+            expect(rebannedUser!.bannedAt).toBeInstanceOf(Date);
         });
     });
 });

@@ -30,7 +30,12 @@ export const UseAuthFetch = () => {
 
                 if (!res.ok) {
                     if (res.status === 401) throw new Error('UNAUTHORIZED');
-                    if (res.status === 403) throw new Error('FORBIDDEN');
+                    if (res.status === 403) {
+                        if (JSON.parse(await res.text()).message === "User is banned") {
+                            throw new Error('Votre compte est banni.');
+                        }
+                        throw new Error('Vous n\'avez pas la permission d\'effectuer cette action.');
+                    }
                     throw new Error(JSON.parse(await res.text()).message || 'Erreur lors de la requête');
                 }
 
@@ -50,7 +55,7 @@ export const UseAuthFetch = () => {
             if (!apiUrl) throw new Error('API URL is not configured');
 
             // Handle CSRF token refresh
-            if (err instanceof Error && err.message === 'FORBIDDEN') {
+            if (err instanceof Error && err.message === 'Invalid CSRF Token. Please get a new one at /csrf-token and try again.') {
                 const baseUrl = new URL(url).origin;
                 console.log(baseUrl)
 

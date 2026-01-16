@@ -22,6 +22,7 @@ export default function AdminDashboard() {
 
     const {
         handleBanUser,
+        handleUnbanUser,
         handleViewPost,
         handleDeletePost,
         handlePostPageChange,
@@ -45,6 +46,7 @@ export default function AdminDashboard() {
                     <UserTable
                         users={users}
                         onBanUser={handleBanUser}
+                        onUnbanUser={handleUnbanUser}
                         isLoading={usersLoading}
                     />
                 </div>

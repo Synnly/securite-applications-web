@@ -57,4 +57,22 @@ export async function banUser(userId: string): Promise<void> {
     }
 }
 
-export { useFetchUsers as UseFetchUsers, banUser as BanUser };
+export async function unbanUser(userId: string): Promise<void> {
+    const authFetch = UseAuthFetch();
+
+    const res = await authFetch(`${API_URL}/user/${userId}/unban`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!res.ok) {
+        const error = await res
+            .json()
+            .catch(() => ({ message: res.statusText }));
+        throw new Error(
+            error.message || "Erreur lors du dé-bannissement de l'utilisateur",
+        );
+    }
+}
+
+export { useFetchUsers as UseFetchUsers, banUser as BanUser, unbanUser as UnbanUser };

@@ -15,6 +15,9 @@ export class UserDto {
     @Expose()
     createdAt: Date;
 
+    @Expose()
+    bannedAt?: Date;
+
     constructor(user?: Partial<UserDto>) {
         Object.assign(this, user);
     }

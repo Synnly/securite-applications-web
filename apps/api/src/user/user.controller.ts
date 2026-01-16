@@ -114,4 +114,24 @@ export class UserController {
         const success = await this.userService.banUser(userId);
         return { success };
     }
+
+    /**
+     * Unbans a user by removing its bannedAt field
+     * @param userId The user identifier
+     * @throws {NotFoundException} if no user exists with the given ID
+     */
+    @Put(':userId/unban')
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
+    @HttpCode(HttpStatus.OK)
+    async unbanUser(
+        @Param('userId', ParseObjectIdPipe) userId: string,
+    ): Promise<{ success: boolean }> {
+        const user = await this.userService.findOne(userId);
+        if (!user)
+            throw new NotFoundException(`User with id ${userId} not found`);
+
+        const success = await this.userService.unbanUser(userId);
+        return { success };
+    }
 }

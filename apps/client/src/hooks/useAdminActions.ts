@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { BanUser } from './fetchUsers';
+import { BanUser, UnbanUser } from './fetchUsers';
 import { deletePost } from './fetchPosts';
 import { postStore } from '../stores/postStore';
 
@@ -17,6 +17,16 @@ export const useAdminActions = () => {
             toast.success('Utilisateur banni avec succès');
         } catch (error) {
             toast.error("Erreur lors du bannissement de l'utilisateur");
+        }
+    };
+
+    const handleUnbanUser = async (userId: string) => {
+        try {
+            await UnbanUser(userId);
+            await queryClient.invalidateQueries({ queryKey: ['users'] });
+            toast.success('Utilisateur dé-banni avec succès');
+        } catch (error) {
+            toast.error("Erreur lors du dé-bannissement de l'utilisateur");
         }
     };
 
@@ -44,6 +54,7 @@ export const useAdminActions = () => {
 
     return {
         handleBanUser,
+        handleUnbanUser,
         handleViewPost,
         handleDeletePost,
         handlePostPageChange,

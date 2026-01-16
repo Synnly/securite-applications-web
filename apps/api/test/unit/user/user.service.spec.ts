@@ -149,7 +149,7 @@ describe('UserService', () => {
     });
 
     describe('banUser', () => {
-        it('should ban a user successfully by setting deletedAt field', async () => {
+        it('should ban a user successfully by setting bannedAt field', async () => {
             const mockResult = {
                 modifiedCount: 1,
                 matchedCount: 1,
@@ -163,7 +163,7 @@ describe('UserService', () => {
             expect(result).toBe(true);
             expect(mockUserModel.updateOne).toHaveBeenCalledWith(
                 { _id: userId.toString() },
-                { $set: { deletedAt: expect.any(Date) } },
+                { $set: { bannedAt: expect.any(Date) } },
             );
             expect(mockUserModel.updateOne).toHaveBeenCalledTimes(1);
         });
@@ -182,7 +182,7 @@ describe('UserService', () => {
             expect(result).toBe(false);
             expect(mockUserModel.updateOne).toHaveBeenCalledWith(
                 { _id: 'non-existent-id' },
-                { $set: { deletedAt: expect.any(Date) } },
+                { $set: { bannedAt: expect.any(Date) } },
             );
         });
 
@@ -207,6 +207,68 @@ describe('UserService', () => {
             });
 
             await expect(service.banUser(userId.toString())).rejects.toThrow(error);
+        });
+    });
+
+    describe('unbanUser', () => {
+        it('should unban a user successfully by removing bannedAt field', async () => {
+            const mockResult = {
+                modifiedCount: 1,
+                matchedCount: 1,
+            };
+            mockUserModel.updateOne.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(mockResult),
+            });
+
+            const result = await service.unbanUser(userId.toString());
+
+            expect(result).toBe(true);
+            expect(mockUserModel.updateOne).toHaveBeenCalledWith(
+                { _id: userId.toString() },
+                { $unset: { bannedAt: '' } },
+            );
+            expect(mockUserModel.updateOne).toHaveBeenCalledTimes(1);
+        });
+
+        it('should return false if user was not found', async () => {
+            const mockResult = {
+                modifiedCount: 0,
+                matchedCount: 0,
+            };
+            mockUserModel.updateOne.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(mockResult),
+            });
+
+            const result = await service.unbanUser('non-existent-id');
+
+            expect(result).toBe(false);
+            expect(mockUserModel.updateOne).toHaveBeenCalledWith(
+                { _id: 'non-existent-id' },
+                { $unset: { bannedAt: '' } },
+            );
+        });
+
+        it('should return false if user was already unbanned (not modified)', async () => {
+            const mockResult = {
+                modifiedCount: 0,
+                matchedCount: 1,
+            };
+            mockUserModel.updateOne.mockReturnValue({
+                exec: jest.fn().mockResolvedValue(mockResult),
+            });
+
+            const result = await service.unbanUser(userId.toString());
+
+            expect(result).toBe(false);
+        });
+
+        it('should propagate error if database update fails', async () => {
+            const error = new Error('Database update error');
+            mockUserModel.updateOne.mockReturnValue({
+                exec: jest.fn().mockRejectedValue(error),
+            });
+
+            await expect(service.unbanUser(userId.toString())).rejects.toThrow(error);
         });
     });
 });

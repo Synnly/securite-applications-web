@@ -63,7 +63,20 @@ export class UserService {
     async banUser(userId: string): Promise<boolean> {
         const result = await this.userModel.updateOne(
             { _id: userId },
-            { $set: { deletedAt: new Date() } },
+            { $set: { bannedAt: new Date() } },
+        ).exec();
+        return result.modifiedCount > 0;
+    }
+
+    /**
+     * Unbans a user by removing its bannedAt field
+     * @param userId The user identifier
+     * @returns A promise that resolves to true if the user was successfully unbanned, false otherwise
+     */
+    async unbanUser(userId: string): Promise<boolean> {
+        const result = await this.userModel.updateOne(
+            { _id: userId },
+            { $unset: { bannedAt: '' } },
         ).exec();
         return result.modifiedCount > 0;
     }
