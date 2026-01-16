@@ -218,7 +218,7 @@ describe('UserModule (Integration)', () => {
 
         it('should exclude banned user from GET /user list', async () => {
             const user1 = await new userModel(validUserDto).save();
-            const user2 = await new userModel({
+            await new userModel({
                 ...validUserDto,
                 email: 'user2@example.com',
             }).save();
