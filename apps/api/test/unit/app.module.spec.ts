@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../../src/app.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
