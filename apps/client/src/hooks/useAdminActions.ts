@@ -11,6 +11,10 @@ export const useAdminActions = () => {
     const setPostFilters = postStore((state) => state.setFilters);
 
     const handleBanUser = async (userId: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?')) {
+            return;
+        }
+
         try {
             await BanUser(userId);
             await queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -21,6 +25,10 @@ export const useAdminActions = () => {
     };
 
     const handleUnbanUser = async (userId: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir dé-bannir cet utilisateur ?')) {
+            return;
+        }
+
         try {
             await UnbanUser(userId);
             await queryClient.invalidateQueries({ queryKey: ['users'] });
