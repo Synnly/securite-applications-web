@@ -76,7 +76,8 @@ export default function AdminDashboard() {
     ];
 
     return (
-        <Tabs
+        <div className='min-h-screen'>
+            <Tabs
             items={items}
             onTabChange={(value) => {
                 if (value === 'back') {
@@ -84,5 +85,6 @@ export default function AdminDashboard() {
                 }
             }}
         />
+        </div>
     );
 }
