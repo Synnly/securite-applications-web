@@ -180,9 +180,6 @@ describe('Main Bootstrap', () => {
     });
 
     afterEach(async () => {
-        // @ts-ignore
-        if (app) {
-            await app.close();
-        }
+        await app?.close();
     });
 });
