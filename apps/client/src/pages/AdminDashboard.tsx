@@ -9,6 +9,8 @@ import { Pagination } from '../components/pagination/Pagination';
 import { postStore } from '../stores/postStore';
 import { useAdminActions } from '../hooks/useAdminActions';
 import { useNavigate } from 'react-router-dom';
+import { useConfirmModal } from '../hooks/useConfirmModal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
@@ -20,13 +22,16 @@ export default function AdminDashboard() {
 
     const users = usersData || [];
 
+    const { isOpen, isPending, confirmAction, openConfirm, closeConfirm, handleConfirm } =
+        useConfirmModal();
+
     const {
         handleBanUser,
         handleUnbanUser,
         handleViewPost,
         handleDeletePost,
         handlePostPageChange,
-    } = useAdminActions();
+    } = useAdminActions({ openConfirm });
 
     const items: TabItem[] = [
         {
@@ -40,9 +45,7 @@ export default function AdminDashboard() {
             icon: <Users className="h-5 w-5" />,
             content: (
                 <div className="animate-fade-in px-5">
-                    <h2 className="text-2xl font-bold mb-4">
-                        Gestion des utilisateurs
-                    </h2>
+                    <h2 className="text-2xl font-bold mb-4">Gestion des utilisateurs</h2>
                     <UserTable
                         users={users}
                         onBanUser={handleBanUser}
@@ -58,9 +61,7 @@ export default function AdminDashboard() {
             icon: <FileText className="h-5 w-5" />,
             content: (
                 <div className="animate-fade-in px-5">
-                    <h2 className="text-2xl font-bold mb-4">
-                        Gestion des articles
-                    </h2>
+                    <h2 className="text-2xl font-bold mb-4">Gestion des articles</h2>
                     <PostTable
                         posts={posts}
                         onViewPost={handleViewPost}
@@ -78,15 +79,26 @@ export default function AdminDashboard() {
     ];
 
     return (
-        <div className='min-h-screen'>
+        <div className="min-h-screen">
             <Tabs
-            items={items}
-            onTabChange={(value) => {
-                if (value === 'back') {
-                    navigate('/posts');
-                }
-            }}
-        />
+                items={items}
+                onTabChange={(value) => {
+                    if (value === 'back') {
+                        navigate('/posts');
+                    }
+                }}
+            />
+            <ConfirmModal
+                isOpen={isOpen}
+                onClose={closeConfirm}
+                onConfirm={handleConfirm}
+                title={confirmAction?.title || ''}
+                message={confirmAction?.message || ''}
+                confirmText={confirmAction?.confirmText}
+                cancelText={confirmAction?.cancelText}
+                confirmClassName={confirmAction?.confirmClassName}
+                isPending={isPending}
+            />
         </div>
     );
 }
