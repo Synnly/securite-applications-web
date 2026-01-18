@@ -12,11 +12,15 @@ export class UserService {
     ) {}
 
     /**
-     * Finds all users that are not soft-deleted.
-     * @returns A promise that resolves to an array of User documents.
+     * Finds all users with USER role that are not soft-deleted.
+     * Only returns regular users (not admins) for ban/unban management.
+     * @returns A promise that resolves to an array of User documents with USER role.
      */
     async findAll(): Promise<User[]> {
-        return this.userModel.find({ deletedAt: { $exists: false } }).exec();
+        return this.userModel.find({ 
+            deletedAt: { $exists: false },
+            role: Role.USER 
+        }).exec();
     }
 
     /**
@@ -54,4 +58,31 @@ export class UserService {
             .countDocuments({ role, deletedAt: { $exists: false } })
             .exec();
     }
+
+    /**
+     * Bans a user by setting its deletedAt field
+     * @param userId The user identifier
+     * @returns A promise that resolves to true if the user was successfully banned, false otherwise
+     */
+    async banUser(userId: string): Promise<boolean> {
+        const result = await this.userModel.updateOne(
+            { _id: userId },
+            { $set: { bannedAt: new Date() } },
+        ).exec();
+        return result.modifiedCount > 0;
+    }
+
+    /**
+     * Unbans a user by removing its bannedAt field
+     * @param userId The user identifier
+     * @returns A promise that resolves to true if the user was successfully unbanned, false otherwise
+     */
+    async unbanUser(userId: string): Promise<boolean> {
+        const result = await this.userModel.updateOne(
+            { _id: userId },
+            { $unset: { bannedAt: '' } },
+        ).exec();
+        return result.modifiedCount > 0;
+    }
+
 }

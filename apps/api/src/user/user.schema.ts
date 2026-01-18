@@ -32,6 +32,12 @@ export class User {
     role: Role;
 
     /**
+     * Indicates if the user is banned from accessing the system
+     */
+    @Prop()
+    bannedAt?: Date;
+
+    /**
      * Timestamp for soft deletion.
      * If present, the user is considered deleted.
      */

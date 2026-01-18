@@ -76,6 +76,12 @@ async function bootstrap() {
         ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
         getCsrfTokenFromRequest: (req: any) =>
             req.cookies?.['__Host-psifi.x-csrf-token-api'],
+        errorConfig: {
+            statusCode: 419,
+            message:
+                'Invalid CSRF Token. Please get a new one at /csrf-token and try again.',
+            code: 'EBADCSRFTOKEN',
+        },
     });
 
     if (!process.env.CORS_URL) throw new Error('CORS_URL is not set.');

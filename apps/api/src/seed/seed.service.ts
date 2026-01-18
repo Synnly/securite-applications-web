@@ -69,7 +69,8 @@ export class SeedService {
         // Get admin user to be the author
         const users = await this.userService.findAll();
         if (users.length === 0) return;
-
+        const posts = await this.postService.findAll({ page: 1, limit: 1 });
+        if (posts.data.length > 0) return; // Posts already exist
         const author = users[0];
 
         const postsData = [
