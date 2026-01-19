@@ -1,4 +1,4 @@
-import { FileText, Home, Users } from 'lucide-react';
+import { FileText, Users } from 'lucide-react';
 import Tabs from '../components/tab/Tabs';
 import type { TabItem } from '../components/tab/tab.type';
 import { UserTable } from '../components/table/UserTable';
@@ -8,12 +8,10 @@ import { UseFetchPosts } from '../hooks/fetchPosts';
 import { Pagination } from '../components/pagination/Pagination';
 import { postStore } from '../stores/postStore';
 import { useAdminActions } from '../hooks/useAdminActions';
-import { useNavigate } from 'react-router-dom';
 import { useConfirmModal } from '../hooks/useConfirmModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 export default function AdminDashboard() {
-    const navigate = useNavigate();
     const { data: usersData, isLoading: usersLoading } = UseFetchUsers();
     const { isLoading: postsLoading } = UseFetchPosts();
 
@@ -34,11 +32,6 @@ export default function AdminDashboard() {
     } = useAdminActions({ openConfirm });
 
     const items: TabItem[] = [
-        {
-            value: 'back',
-            label: 'Liste des articles',
-            icon: <Home className="h-5 w-5" />,
-        },
         {
             value: 'users',
             label: 'Utilisateurs',
@@ -82,11 +75,6 @@ export default function AdminDashboard() {
         <div className="min-h-screen">
             <Tabs
                 items={items}
-                onTabChange={(value) => {
-                    if (value === 'back') {
-                        navigate('/posts');
-                    }
-                }}
             />
             <ConfirmModal
                 isOpen={isOpen}
