@@ -277,6 +277,20 @@ describe('UserModule (Integration)', () => {
                 .expect(200);
             expect(secondBan.body.success).toBe(true);
         });
+
+        it('should return 400 when trying to ban a non-USER role', async () => {
+            const adminUser = await new userModel({
+                ...validUserDto,
+                email: 'admin@example.com',
+                role: Role.ADMIN,
+            }).save();
+
+            const response = await request(app.getHttpServer())
+                .put(`/user/${adminUser._id.toString()}/ban`)
+                .expect(400);
+
+            expect(response.body.message).toContain('Only users with role USER');
+        });
     });
 
     describe('PUT /user/:userId/unban', () => {
@@ -350,6 +364,20 @@ describe('UserModule (Integration)', () => {
             expect(rebannedUser).toBeDefined();
             expect(rebannedUser!.bannedAt).toBeDefined();
             expect(rebannedUser!.bannedAt).toBeInstanceOf(Date);
+        });
+
+        it('should return 400 when trying to unban a non-USER role', async () => {
+            const adminUser = await new userModel({
+                ...validUserDto,
+                email: 'admin2@example.com',
+                role: Role.ADMIN,
+            }).save();
+
+            const response = await request(app.getHttpServer())
+                .put(`/user/${adminUser._id.toString()}/unban`)
+                .expect(400);
+
+            expect(response.body.message).toContain('Only users with role USER');
         });
     });
 });

@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     ConflictException,
     Controller,
@@ -111,6 +112,9 @@ export class UserController {
         if (!user)
             throw new NotFoundException(`User with id ${userId} not found`);
 
+        if (user.role !== Role.USER) 
+            throw new BadRequestException(`Only users with role USER can be banned`);
+
         const success = await this.userService.banUser(userId);
         return { success };
     }
@@ -130,6 +134,9 @@ export class UserController {
         const user = await this.userService.findOne(userId);
         if (!user)
             throw new NotFoundException(`User with id ${userId} not found`);
+
+        if (user.role !== Role.USER) 
+            throw new BadRequestException(`Only users with role USER can be unbanned`);
 
         const success = await this.userService.unbanUser(userId);
         return { success };
