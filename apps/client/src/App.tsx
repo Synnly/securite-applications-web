@@ -22,14 +22,20 @@ function App() {
     userStore.persist.rehydrate();
     const queryClient = new QueryClient();
 
+    const API_URL = import.meta.env.VITE_APIURL;
+
     const route = [
         {
             element: <MainLayout />,
             children: [
                 {
                     path: 'logout',
-                    loader: () => {
+                    loader: async () => {
                         userStore.getState().logout();
+                        await fetch(`${API_URL}/auth/logout`, {
+                            method: 'POST',
+                            credentials: 'include',
+                        })
                         return redirect('/signin');
                     },
                 },
