@@ -24,8 +24,12 @@ async function bootstrap() {
         cert: fs.readFileSync(certPath),
     };
 
+    if (process.env.PRETTY_LOGS === undefined) {
+        throw new Error('PRETTY_LOGS is not set.');
+    }
+
     const logger = new ConsoleLogger({
-        json: true,
+        json: !process.env.PRETTY_LOGS,
         timestamp: true,
         colors: true,
         logLevels: ['log', 'error', 'warn'],
