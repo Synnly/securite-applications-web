@@ -29,7 +29,7 @@ async function bootstrap() {
     }
 
     const logger = new ConsoleLogger({
-        json: !process.env.PRETTY_LOGS,
+        json: process.env.PRETTY_LOGS === 'false',
         timestamp: true,
         colors: true,
         logLevels: ['log', 'error', 'warn'],
