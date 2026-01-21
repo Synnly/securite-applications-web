@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     ConflictException,
     Controller,
@@ -8,6 +9,7 @@ import {
     NotFoundException,
     Param,
     Post,
+    Put,
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
@@ -26,8 +28,8 @@ export class UserController {
     constructor(private readonly userService: UserService) {}
 
     /**
-     * Retrieves all companies
-     * @returns An array of all companies
+     * Retrieves all users with USER role (excluding admins)
+     * @returns An array of regular users for ban/unban management
      */
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
@@ -91,5 +93,52 @@ export class UserController {
                 throw error;
             }
         }
+    }
+
+    /**
+     * Bans a user by setting its deletedAt field
+     * @param userId The user identifier
+     * @throws {NotFoundException} if no user exists with the given ID
+     *
+     */
+    @Put(':userId/ban')
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
+    @HttpCode(HttpStatus.OK)
+    async banUser(
+        @Param('userId', ParseObjectIdPipe) userId: string,
+    ): Promise<{ success: boolean }> {
+        const user = await this.userService.findOne(userId);
+        if (!user)
+            throw new NotFoundException(`User with id ${userId} not found`);
+
+        if (user.role !== Role.USER) 
+            throw new BadRequestException(`Only users with role USER can be banned`);
+
+        const success = await this.userService.banUser(userId);
+        return { success };
+    }
+
+    /**
+     * Unbans a user by removing its bannedAt field
+     * @param userId The user identifier
+     * @throws {NotFoundException} if no user exists with the given ID
+     */
+    @Put(':userId/unban')
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
+    @HttpCode(HttpStatus.OK)
+    async unbanUser(
+        @Param('userId', ParseObjectIdPipe) userId: string,
+    ): Promise<{ success: boolean }> {
+        const user = await this.userService.findOne(userId);
+        if (!user)
+            throw new NotFoundException(`User with id ${userId} not found`);
+
+        if (user.role !== Role.USER) 
+            throw new BadRequestException(`Only users with role USER can be unbanned`);
+
+        const success = await this.userService.unbanUser(userId);
+        return { success };
     }
 }

@@ -125,3 +125,21 @@ export async function createPost({ data }: CreatePostPayload) {
         throw new Error(message);
     }
 }
+
+export async function deletePost(postId: string): Promise<void> {
+    const authFetch = UseAuthFetch();
+
+    const res = await authFetch(`${API_URL}/post/${postId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!res.ok) {
+        const error = await res
+            .json()
+            .catch(() => ({ message: res.statusText }));
+        throw new Error(
+            error.message || 'Erreur lors de la suppression du post',
+        );
+    }
+}

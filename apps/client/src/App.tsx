@@ -13,12 +13,16 @@ import { PostPage } from './pages/PostPage.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
 import { LandingPage } from './pages/LandingPage.tsx';
 import { DarkModeProvider } from './components/darkMode/DarkModeProvider.tsx';
-import {DonatePage} from "./pages/DonatePage.tsx";
-import {DonationSucessPage} from "./pages/DonationSucessPage.tsx";
+import { adminMiddleware } from './modules/middlewares/adminMiddleware.ts';
+import AdminDashboard from './pages/AdminDashboard.tsx';
+import { DonatePage } from './pages/DonatePage.tsx';
+import { DonationSucessPage } from './pages/DonationSucessPage.tsx';
 
 function App() {
     userStore.persist.rehydrate();
     const queryClient = new QueryClient();
+
+    const API_URL = import.meta.env.VITE_APIURL;
 
     const route = [
         {
@@ -26,8 +30,12 @@ function App() {
             children: [
                 {
                     path: 'logout',
-                    loader: () => {
+                    loader: async () => {
                         userStore.getState().logout();
+                        await fetch(`${API_URL}/auth/logout`, {
+                            method: 'POST',
+                            credentials: 'include',
+                        })
                         return redirect('/signin');
                     },
                 },
@@ -61,6 +69,15 @@ function App() {
                             element: <PostPage />,
                         },
                         {
+                            loader: adminMiddleware,
+                            children: [
+                                {
+                                    path: '/admin',
+                                    element: <AdminDashboard />,
+                                },
+                            ],
+                        },
+                        {
                             path: 'donate',
                             children: [
                                 {
@@ -69,10 +86,10 @@ function App() {
                                 },
                                 {
                                     path: 'success',
-                                    element: <DonationSucessPage/>
-                                }
-                            ]
-                        }
+                                    element: <DonationSucessPage />,
+                                },
+                            ],
+                        },
                     ],
                 },
             ],
