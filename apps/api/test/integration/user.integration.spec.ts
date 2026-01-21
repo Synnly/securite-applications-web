@@ -20,7 +20,7 @@ describe('UserModule (Integration)', () => {
     const validUserDto: CreateUserDto = {
         email: 'test@example.com',
         password: 'Password123!',
-        role: Role.ADMIN,
+        role: Role.USER,
     };
 
     beforeAll(async () => {
@@ -181,6 +181,203 @@ describe('UserModule (Integration)', () => {
             const id = result.insertedId.toString();
 
             await request(app.getHttpServer()).get(`/user/${id}`).expect(404);
+        });
+    });
+
+    describe('PUT /user/:userId/ban', () => {
+        it('should ban a user successfully', async () => {
+            const user = await new userModel(validUserDto).save();
+            const id = user._id.toString();
+
+            const response = await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+
+            expect(response.body.success).toBe(true);
+
+            // Vérifier que l'utilisateur a bien été banni (bannedAt est défini)
+            const bannedUser = await userModel.findById(id);
+            expect(bannedUser).toBeDefined();
+            expect(bannedUser!.bannedAt).toBeDefined();
+            expect(bannedUser!.bannedAt).toBeInstanceOf(Date);
+        });
+
+        it('should return 404 if user to ban does not exist', async () => {
+            const fakeId = new Types.ObjectId().toString();
+
+            await request(app.getHttpServer())
+                .put(`/user/${fakeId}/ban`)
+                .expect(404);
+        });
+
+        it('should return 400 if user ID is invalid', async () => {
+            await request(app.getHttpServer())
+                .put('/user/invalid-id-format/ban')
+                .expect(400);
+        });
+
+        it('should include banned user in GET /user list with bannedAt field', async () => {
+            const user1 = await new userModel(validUserDto).save();
+            await new userModel({
+                ...validUserDto,
+                email: 'user2@example.com',
+            }).save();
+
+            // Bannir le premier utilisateur
+            await request(app.getHttpServer())
+                .put(`/user/${user1._id.toString()}/ban`)
+                .expect(200);
+
+            // Vérifier que les deux utilisateurs sont retournés
+            const response = await request(app.getHttpServer())
+                .get('/user')
+                .expect(200);
+
+            expect(response.body.length).toBe(2);
+            // Trouver l'utilisateur banni dans la réponse
+            const bannedUserInList = response.body.find(
+                (u: any) => u.email === validUserDto.email,
+            );
+            expect(bannedUserInList).toBeDefined();
+            expect(bannedUserInList.bannedAt).toBeDefined();
+        });
+
+        it('should still retrieve banned user from GET /user/:userId', async () => {
+            const user = await new userModel(validUserDto).save();
+            const id = user._id.toString();
+
+            // Bannir l'utilisateur
+            await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+
+            // Récupérer l'utilisateur banni - devrait réussir
+            const response = await request(app.getHttpServer())
+                .get(`/user/${id}`)
+                .expect(200);
+
+            expect(response.body).toBeDefined();
+            expect(response.body.email).toEqual(validUserDto.email);
+            expect(response.body.bannedAt).toBeDefined();
+        });
+
+        it('should allow banning an already banned user (idempotent)', async () => {
+            const user = await new userModel(validUserDto).save();
+            const id = user._id.toString();
+
+            // Premier bannissement
+            const firstBan = await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+            expect(firstBan.body.success).toBe(true);
+
+            // Deuxième bannissement - MongoDB updateOne retourne modifiedCount 1 même si déjà banni
+            const secondBan = await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+            expect(secondBan.body.success).toBe(true);
+        });
+
+        it('should return 400 when trying to ban a non-USER role', async () => {
+            const adminUser = await new userModel({
+                ...validUserDto,
+                email: 'admin@example.com',
+                role: Role.ADMIN,
+            }).save();
+
+            const response = await request(app.getHttpServer())
+                .put(`/user/${adminUser._id.toString()}/ban`)
+                .expect(400);
+
+            expect(response.body.message).toContain('Only users with role USER');
+        });
+    });
+
+    describe('PUT /user/:userId/unban', () => {
+        it('should unban a banned user successfully', async () => {
+            const user = await new userModel({
+                ...validUserDto,
+                bannedAt: new Date(),
+            }).save();
+            const id = user._id.toString();
+
+            const response = await request(app.getHttpServer())
+                .put(`/user/${id}/unban`)
+                .expect(200);
+
+            expect(response.body.success).toBe(true);
+
+            // Vérifier que l'utilisateur n'est plus banni (bannedAt a été supprimé)
+            const unbannedUser = await userModel.findById(id);
+            expect(unbannedUser).toBeDefined();
+            expect(unbannedUser!.bannedAt).toBeUndefined();
+        });
+
+        it('should return 404 if user to unban does not exist', async () => {
+            const fakeId = new Types.ObjectId().toString();
+
+            await request(app.getHttpServer())
+                .put(`/user/${fakeId}/unban`)
+                .expect(404);
+        });
+
+        it('should return 400 if user ID is invalid', async () => {
+            await request(app.getHttpServer())
+                .put('/user/invalid-id-format/unban')
+                .expect(400);
+        });
+
+        it('should allow unbanning a user that is not banned (idempotent)', async () => {
+            const user = await new userModel(validUserDto).save();
+            const id = user._id.toString();
+
+            // Dé-bannir un utilisateur qui n'est pas banni
+            const response = await request(app.getHttpServer())
+                .put(`/user/${id}/unban`)
+                .expect(200);
+
+            // MongoDB $unset retourne modifiedCount 1 même si le champ n'existe pas
+            expect(response.body.success).toBe(true);
+        });
+
+        it('should allow user to be banned again after being unbanned', async () => {
+            const user = await new userModel({
+                ...validUserDto,
+                bannedAt: new Date(),
+            }).save();
+            const id = user._id.toString();
+
+            // Dé-bannir l'utilisateur
+            await request(app.getHttpServer())
+                .put(`/user/${id}/unban`)
+                .expect(200);
+
+            // Bannir à nouveau l'utilisateur
+            const response = await request(app.getHttpServer())
+                .put(`/user/${id}/ban`)
+                .expect(200);
+
+            expect(response.body.success).toBe(true);
+
+            // Vérifier que l'utilisateur est à nouveau banni
+            const rebannedUser = await userModel.findById(id);
+            expect(rebannedUser).toBeDefined();
+            expect(rebannedUser!.bannedAt).toBeDefined();
+            expect(rebannedUser!.bannedAt).toBeInstanceOf(Date);
+        });
+
+        it('should return 400 when trying to unban a non-USER role', async () => {
+            const adminUser = await new userModel({
+                ...validUserDto,
+                email: 'admin2@example.com',
+                role: Role.ADMIN,
+            }).save();
+
+            const response = await request(app.getHttpServer())
+                .put(`/user/${adminUser._id.toString()}/unban`)
+                .expect(400);
+
+            expect(response.body.message).toContain('Only users with role USER');
         });
     });
 });

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Outlet, useMatches, type UIMatch } from 'react-router-dom';
+import Footer from "./Footer.tsx";
 
 interface RouteMeta {
     title?: string;
@@ -18,6 +19,7 @@ export default function MainLayout() {
         <div className="min-h-screen min-w-screen flex flex-col bg-base-100">
             <main className="flex-1">
                 <Outlet />
+                <Footer />
             </main>
         </div>
     );

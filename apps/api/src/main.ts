@@ -24,8 +24,12 @@ async function bootstrap() {
         cert: fs.readFileSync(certPath),
     };
 
+    if (process.env.PRETTY_LOGS === undefined) {
+        throw new Error('PRETTY_LOGS is not set.');
+    }
+
     const logger = new ConsoleLogger({
-        json: true,
+        json: process.env.PRETTY_LOGS === 'false',
         timestamp: true,
         colors: true,
         logLevels: ['log', 'error', 'warn'],
@@ -40,7 +44,7 @@ async function bootstrap() {
     try {
         await seedService.run();
     } catch (error) {
-        logger.error('Seeding failed during bootstrap:', error);
+        logger.error('Seeding failed during bootstrap:', error, 'SeedService');
     }
 
     app.use(
@@ -54,18 +58,18 @@ async function bootstrap() {
         }),
     );
 
+    if (!process.env.CSRF_SECRET) throw new Error('CSRF_SECRET is not set.');
+
     const { doubleCsrfProtection } = doubleCsrf({
-        getSecret: () =>
-            process.env.CSRF_SECRET ||
-            'default-strong-secret-that-should-never-be-used-in-production',
+        getSecret: () => process.env.CSRF_SECRET!,
         getSessionIdentifier: (req: any) => {
             return (
-                req.cookies?.['__Host-psifi.session'] ??
+                req.cookies?.['__Host-psifi.session-api'] ??
                 req.cookies?.sessionId ??
                 ''
             );
         },
-        cookieName: '__Host-psifi.x-csrf-token',
+        cookieName: '__Host-psifi.x-csrf-token-api',
         cookieOptions: {
             sameSite: 'lax',
             path: '/',
@@ -75,16 +79,24 @@ async function bootstrap() {
         size: 64,
         ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
         getCsrfTokenFromRequest: (req: any) =>
-            req.cookies?.['__Host-psifi.x-csrf-token'],
+            req.cookies?.['__Host-psifi.x-csrf-token-api'],
+        errorConfig: {
+            statusCode: 419,
+            message:
+                'Invalid CSRF Token. Please get a new one at /csrf-token and try again.',
+            code: 'EBADCSRFTOKEN',
+        },
     });
 
+    if (!process.env.CORS_URL) throw new Error('CORS_URL is not set.');
+
     app.enableCors({
-        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        origin: process.env.CORS_URL.split(';'),
         credentials: true,
     });
 
     logger.log(
-        `CORS enabled for : ${process.env.FRONTEND_URL || 'http://localhost:5173'}`,
+        `CORS enabled for : ${process.env.CORS_URL.split(';')}`,
         'InstanceLoader',
     );
 
