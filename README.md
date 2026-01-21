@@ -11,6 +11,7 @@
 - [Déploiement](#déploiement)
   - [Backend](#backend)
   - [Frontend](#frontend)
+- [Admin par défaut](#admin-par-défaut)
 
 ## Setup du projet
 ### Prérequis
@@ -116,6 +117,7 @@ Les variables d'environnement doivent être configurées dans des fichiers `.env
 6. `ACCESS_TOKEN_LIFESPAN_MINUTES` : Durée de vie des tokens d'accès en minutes (ex: 15 pour 15 minutes). Durée très courte recommandée (max 1 heure).
 7. `REFRESH_TOKEN_LIFESPAN_MINUTES` : Durée de vie des tokens de rafraîchissement en minutes (ex: 43200 pour 30 jours). Durée plus longue recommandée.
 8. `CSRF_SECRET` : Secret utilisé pour la protection CSRF. Clé de 64 caractères minimum recommandée.
+9. `PRETTY_LOGS` : Si `true`, les logs seront formatés pour être plus lisibles (utile en développement). Si `false`, les logs seront en format JSON (utile en production).
 
 ### Frontend
 1. `VITE_APIURL` : URL de l'application backend (ex: http://localhost:3000).
@@ -133,6 +135,11 @@ npm run start:prod
 ### Frontend
 Pour déployer le frontend, il suffit de servir les fichiers statiques générés dans le dossier `dist` après le build dans
 le bon dossier de NGINX.
+
+## Admin par défaut
+Un utilisateur admin est créé par défaut lors du premier démarrage du backend avec pour email `admin@admin.admin` et un
+mot de passe stocké dans `apps/api/ADMIN-CREDENTIALS.txt`. Il est fortement recommandé de changer ce mot de passe après la
+première connexion.
 
 
 [Revenir en haut](#sommaire)
