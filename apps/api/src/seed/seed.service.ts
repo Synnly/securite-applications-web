@@ -66,9 +66,31 @@ export class SeedService {
      * Seeds 12 posts with random comments (1-30 per post)
      */
     private async seedPostsAndComments() {
-        // Get admin user to be the author
-        const users = await this.userService.findAll();
+        // Get a user to be the author. If no USER role exists, create one.
+        let users = await this.userService.findAll();
+
+        if (users.length === 0) {
+            // Create a default user for seeding purposes
+            const defaultUserDto = new CreateUserDto();
+            defaultUserDto.email = 'user@seed.local';
+            defaultUserDto.password = randomBytes(64).toString('hex');
+            defaultUserDto.role = Role.USER;
+
+            try {
+                await this.userService.create(defaultUserDto);
+                users = await this.userService.findAll();
+                Logger.log('Created default user for seeding');
+            } catch (error) {
+                Logger.error(
+                    'Failed to create default user for seeding',
+                    error,
+                );
+                return;
+            }
+        }
+
         if (users.length === 0) return;
+
         const posts = await this.postService.findAll({ page: 1, limit: 1 });
         if (posts.data.length > 0) return; // Posts already exist
         const author = users[0];
