@@ -30,16 +30,22 @@ export const Navbar = () => {
                     <div className="flex gap-4">
                         <ToggleDarkMode />
 
-                        <button
+                        {user && (
+                            <button
                             className="btn btn-primary"
                             onClick={() => setIsModalOpen(true)}
                         >
                             <Plus />
-                            Poster
+                            Poster  
                         </button>
-                        <a className="btn btn-ghost" href="/logout">
+                        )}
+                       {user ? (
+                         <a className="btn btn-ghost" href="/logout">
                             Deconnexion
                         </a>
+                       ) : (  <a className="btn btn-ghost" href="/signin">
+                            Connexion
+                        </a>)}
                     </div>
                 </div>
             </nav>
