@@ -51,7 +51,14 @@ export const UseLogin = () => {
                 }
 
                 // Retry the login request after fetching CSRF token
-                return performLoginRequest(data);
+                return await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
             }
             const message = await res.json();
             throw new Error(translateMessage(message.message));
