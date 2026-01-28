@@ -3,6 +3,7 @@ import {
     Body,
     ConflictException,
     Controller,
+    ForbiddenException,
     Get,
     HttpCode,
     HttpStatus,
@@ -10,6 +11,7 @@ import {
     Param,
     Post,
     Put,
+    Req,
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
@@ -22,6 +24,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../common/roles/roles.guard';
 import { Role } from '../common/roles/roles.enum';
 import { Roles } from '../common/roles/roles.decorator';
+import express from 'express';
 
 @Controller('user')
 export class UserController {
@@ -69,6 +72,7 @@ export class UserController {
     /**
      * Creates a new user
      * @param dto The user data for creation
+     * @param req
      */
     @Post()
     @HttpCode(HttpStatus.CREATED)
@@ -82,6 +86,7 @@ export class UserController {
         )
         dto: CreateUserDto,
     ) {
+        dto.role = Role.USER; // Force role to USER on creation
         try {
             await this.userService.create(dto);
         } catch (error) {
@@ -112,8 +117,10 @@ export class UserController {
         if (!user)
             throw new NotFoundException(`User with id ${userId} not found`);
 
-        if (user.role !== Role.USER) 
-            throw new BadRequestException(`Only users with role USER can be banned`);
+        if (user.role !== Role.USER)
+            throw new BadRequestException(
+                `Only users with role USER can be banned`,
+            );
 
         const success = await this.userService.banUser(userId);
         return { success };
@@ -135,8 +142,10 @@ export class UserController {
         if (!user)
             throw new NotFoundException(`User with id ${userId} not found`);
 
-        if (user.role !== Role.USER) 
-            throw new BadRequestException(`Only users with role USER can be unbanned`);
+        if (user.role !== Role.USER)
+            throw new BadRequestException(
+                `Only users with role USER can be unbanned`,
+            );
 
         const success = await this.userService.unbanUser(userId);
         return { success };
