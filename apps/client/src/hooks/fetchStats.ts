@@ -7,7 +7,6 @@ export const fetchStats = async () => {
         headers: {
             'Content-Type': 'application/json',
         },
-        credentials: 'include',
     });
 
     if (!res.ok) {
