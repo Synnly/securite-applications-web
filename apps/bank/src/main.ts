@@ -23,8 +23,12 @@ async function bootstrap() {
         cert: fs.readFileSync(certPath),
     };
 
+    if (process.env.PRETTY_LOGS === undefined) {
+        throw new Error('PRETTY_LOGS is not set.');
+    }
+
     const logger = new ConsoleLogger({
-        json: true,
+        json: process.env.PRETTY_LOGS === 'false',
         timestamp: true,
         colors: true,
         logLevels: ['log', 'error', 'warn'],
@@ -79,6 +83,12 @@ async function bootstrap() {
         ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
         getCsrfTokenFromRequest: (req: any) =>
             req.cookies?.['__Host-psifi.x-csrf-token-bank'],
+        errorConfig: {
+            statusCode: 419,
+            message:
+                'Invalid CSRF Token. Please get a new one at /csrf-token and try again.',
+            code: 'EBADCSRFTOKEN',
+        },
     });
 
     if (!process.env.CORS_URL) throw new Error('CORS_URL is not set.');

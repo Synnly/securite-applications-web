@@ -1,6 +1,7 @@
 import { Document, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
+import { pbkdf2Sync } from 'crypto';
 
 export type AccountDocument = Account & Document;
 
@@ -15,7 +16,7 @@ export class Account {
      * Card number associated with the account
      */
     @Prop({ required: true, unique: true })
-    cardNumber: number;
+    cardNumber: string;
 
     /**
      * Expiration date of the card
@@ -44,7 +45,23 @@ AccountSchema.pre('save', async function () {
     if (!this.expirationDate) throw new Error('Expiration date is missing');
     if (!this.cvv) throw new Error('CVV is missing');
 
+    const ITERATIONS = 100000;
+    const KEY_LEN = 64;
+    const DIGEST = 'sha512';
+    const STATIC_SALT = process.env.STATIC_SALT;
+
+    if (!STATIC_SALT) throw new Error('STATIC_SALT is not defined');
+
     try {
+        if (this.isModified('cardNumber')) {
+            this.cardNumber = pbkdf2Sync(
+                this.cardNumber,
+                STATIC_SALT,
+                ITERATIONS,
+                KEY_LEN,
+                DIGEST,
+            ).toString('hex');
+        }
         if (this.isModified('expirationDate')) {
             this.expirationDate = await bcrypt.hash(
                 this.expirationDate,

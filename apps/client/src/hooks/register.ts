@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { userStore } from '../stores/userStore';
 import { useNavigate } from 'react-router';
 import type { formSignUp } from '../modules/types/formRegister.type';
+import {UseAuthFetch} from "./authFetch.ts";
 
 export const UseRegister = () => {
     const setAccess = userStore((state) => state.set);
@@ -16,13 +17,13 @@ export const UseRegister = () => {
             password: string;
             role: string;
         }) => {
-            const res = await fetch(`${API_URL}/user`, {
+            const authFetch = UseAuthFetch();
+            const res = await authFetch(`${API_URL}/user`, {
                 method: 'POST',
-                body: JSON.stringify(data),
+                data: JSON.stringify(data),
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include',
             });
             if (!res.ok) {
                 const message = await res.json();

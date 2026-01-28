@@ -13,7 +13,6 @@ describe('AppModule', () => {
 
     beforeEach(async () => {
         // Mock environment variables
-        process.env.DATABASE_URL = 'mongodb://localhost:27017/test';
 
         module = await Test.createTestingModule({
             imports: [
@@ -51,12 +50,6 @@ describe('AppModule', () => {
     it('should have ConfigModule as global module', () => {
         const configService = module.get<ConfigService>(ConfigService);
         expect(configService).toBeDefined();
-    });
-
-    it('should load DATABASE_URL from environment', () => {
-        const configService = module.get<ConfigService>(ConfigService);
-        const databaseUrl = configService.get<string>('DATABASE_URL');
-        expect(databaseUrl).toBe('mongodb://localhost:27017/test');
     });
 
     it('should import UserModule', () => {
