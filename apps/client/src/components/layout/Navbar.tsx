@@ -36,7 +36,7 @@ export const Navbar = () => {
                             onClick={() => setIsModalOpen(true)}
                         >
                             <Plus />
-                            Poster  
+                            Poster
                         </button>
                         )}
                        {user ? (
