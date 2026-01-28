@@ -105,5 +105,13 @@ export class AuthController {
             path: '/',
             maxAge: 0,
         });
+
+        res.cookie('__Host-psifi.x-csrf-token-api', '', {
+            httpOnly: false,
+            secure: true,
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 0,
+        });
     }
 }

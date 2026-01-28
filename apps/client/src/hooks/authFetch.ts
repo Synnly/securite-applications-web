@@ -41,7 +41,6 @@ export const UseAuthFetch = () => {
 
                 return res;
             } catch (err) {
-                console.log(err)
                 if (err instanceof TypeError && err.message === 'Failed to fetch') {
                     throw new Error('Impossible de contacter le serveur (CORS ou réseau)');
                 }
@@ -52,14 +51,12 @@ export const UseAuthFetch = () => {
         try {
             return await doFetch();
         } catch (err) {
-            console.log(err)
             const apiUrl = import.meta.env.VITE_APIURL;
             if (!apiUrl) throw new Error('API URL is not configured');
 
             // Handle CSRF token refresh
             if (err instanceof Error && err.message === 'Invalid CSRF Token. Please get a new one at /csrf-token and try again.') {
                 const baseUrl = new URL(url).origin;
-                console.log(baseUrl)
 
                 const csrfRes = await fetch(`${baseUrl}/csrf-token`, {
                     method: 'GET',
@@ -96,7 +93,6 @@ export const UseAuthFetch = () => {
                 }
             }
             else {
-                console.log(err)
                 throw err;
             }
         }

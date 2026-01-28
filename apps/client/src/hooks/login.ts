@@ -30,7 +30,7 @@ export const UseLogin = () => {
     if (!API_URL) throw new Error('API URL is not configured');
 
     const performLoginRequest = async (data: FormLogin): Promise<Response> => {
-        const res = await fetch(`${API_URL}/auth/login`, {
+        let res = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             body: JSON.stringify(data),
             headers: {
@@ -51,7 +51,7 @@ export const UseLogin = () => {
                 }
 
                 // Retry the login request after fetching CSRF token
-                return await fetch(`${API_URL}/auth/login`, {
+                res = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
                     body: JSON.stringify(data),
                     headers: {
@@ -59,6 +59,9 @@ export const UseLogin = () => {
                     },
                     credentials: 'include',
                 });
+                if (res.ok) {
+                    return res;
+                }
             }
             const message = await res.json();
             throw new Error(translateMessage(message.message));

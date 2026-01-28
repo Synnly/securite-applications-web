@@ -47,7 +47,6 @@ export const UseDonation = () => {
 
     const translateError = (error?: string) => {
         if(!error) return;
-        console.log(error);
         switch (error) {
             case 'Insufficient balance':
                 return "Erreur : Fonds insuffisants";
