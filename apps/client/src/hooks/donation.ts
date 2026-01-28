@@ -1,7 +1,6 @@
 import {useMutation} from '@tanstack/react-query';
 import {useNavigate} from 'react-router';
 import type {formDonation} from "../modules/types/formDonation.type.ts";
-import {UseAuthFetch} from "./authFetch.ts";
 
 export const UseDonation = () => {
     const navigate = useNavigate();
@@ -10,27 +9,49 @@ export const UseDonation = () => {
     const BANK_URL = import.meta.env.VITE_BANKURL;
     if (!BANK_URL) throw new Error('Bank URL is not configured');
 
-    const { mutateAsync, isPending, isError, error, reset } = useMutation({
-        mutationFn: async (data: {
-            amount: string;
-            cardNumber: string;
-            expirationDate: string;
-            cvv: string;
-        }) => {
-            const authFetch = UseAuthFetch();
-            const { amount, ...rest } = data;
-            try {
-                return await authFetch(`${BANK_URL}/account/pay?amount=${amount}`, {
+    const performDonationRequest = async (data: formDonation): Promise<Response> => {
+        const { amount, ...rest } = data;
+
+        let res = await fetch(`${BANK_URL}/account/pay?amount=${amount}`, {
+            method: 'POST',
+            body: JSON.stringify(rest),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "include"
+        });
+
+        if (!res.ok) {
+            if (res.status === 419) {
+                const csrfRes = await fetch(`${BANK_URL}/csrf-token`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                if (!csrfRes.ok) {
+                    throw new Error('Erreur lors de la récupération du token CSRF');
+                }
+
+                res = await fetch(`${BANK_URL}/account/pay?amount=${amount}`, {
                     method: 'POST',
-                    data: JSON.stringify(rest),
+                    body: JSON.stringify(rest),
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: "include"
                 });
-            } catch (error: any) {
-                throw new Error(translateError(error?.message));
+                if (res.ok) {
+                    return res;
+                }
             }
-        },
+            const message = await res.json();
+            throw new Error(translateError(message.message));
+        }
+        return res;
+    };
+
+    const { mutateAsync, isPending, isError, error, reset } = useMutation({
+        mutationFn: performDonationRequest,
     });
 
     const register = async (data: formDonation) => {
