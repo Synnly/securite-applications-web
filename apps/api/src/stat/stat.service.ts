@@ -19,6 +19,8 @@ export class StatService {
         const [users, posts, comments] = await Promise.all([
             this.userModel.countDocuments({ deletedAt: null }).exec(),
             this.postModel.countDocuments({ deletedAt: null }).exec(),
+            // Comments do not support soft deletion and are permanently removed,
+            // so we intentionally count all comment documents without a deletedAt filter.
             this.commentModel.countDocuments().exec(),
         ]);
 
