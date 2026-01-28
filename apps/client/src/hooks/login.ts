@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { userStore } from '../stores/userStore';
 import { useLocation, useNavigate } from 'react-router';
-import type {FormLogin} from "../modules/types/formLogin.type.ts";
+import type { FormLogin } from '../modules/types/formLogin.type.ts';
 
 /**
  * Translate error messages from the API to French.
@@ -29,23 +29,38 @@ export const UseLogin = () => {
     const API_URL = import.meta.env.VITE_APIURL;
     if (!API_URL) throw new Error('API URL is not configured');
 
-    const { mutateAsync, isPending, isError, error, reset } = useMutation({
-        mutationFn: async (data: FormLogin) => {
-            
-            const res =  await fetch(`${API_URL}/auth/login`, {
-                method: 'POST',
-                body: JSON.stringify(data),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-            });
-            if (!res.ok) {
-                const message = await res.json();
-                throw new Error(translateMessage(message.message));
+    const performLoginRequest = async (data: FormLogin): Promise<Response> => {
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        });
+
+        if (!res.ok) {
+            if (res.status === 419) {
+                const csrfRes = await fetch(`${API_URL}/csrf-token`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                if (!csrfRes.ok) {
+                    throw new Error('Erreur lors de la récupération du token CSRF');
+                }
+
+                // Retry the login request after fetching CSRF token
+                return performLoginRequest(data);
             }
-            return res;
-        },
+            const message = await res.json();
+            throw new Error(translateMessage(message.message));
+        }
+        return res;
+    };
+
+    const { mutateAsync, isPending, isError, error, reset } = useMutation({
+        mutationFn: performLoginRequest,
     });
     const login = async (data: FormLogin) => {
         const res = await mutateAsync(data);
@@ -53,7 +68,8 @@ export const UseLogin = () => {
             const accessToken = await res.text();
             setAccess(accessToken);
             const user = getAccess(accessToken);
-            if (!user) throw new Error('Erreur lors de la récupération des informations utilisateur.');
+            if (!user)
+                throw new Error('Erreur lors de la récupération des informations utilisateur.');
             const redirectTo = lastLocationRoute || '/';
             navigate(redirectTo);
         }
