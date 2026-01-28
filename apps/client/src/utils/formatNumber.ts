@@ -6,7 +6,7 @@ export const formatCompactNumber = (num: number): string => {
     }
 
     if (num < 1000) {
-        return `${Math.floor(num / 100) * 100}`;
+        return `${Math.floor(num / 100) * 100}+`;
     }
 
     if (num < 1000000) {
