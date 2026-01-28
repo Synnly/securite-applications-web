@@ -10,6 +10,7 @@ import { TokensMiddleware } from './common/middleware/tokens.middleware';
 import { CommentModule } from './comment/comment.module';
 import { SeedModule } from './seed/seed.module';
 import { DonationModule } from './donation/donation.module';
+import { StatModule } from './stat/stat.module';
 
 @Module({
     imports: [
@@ -37,6 +38,7 @@ import { DonationModule } from './donation/donation.module';
         CommentModule,
         SeedModule,
         DonationModule,
+        StatModule,
     ],
     controllers: [],
     providers: [

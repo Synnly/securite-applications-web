@@ -41,6 +41,9 @@ REFRESH_TOKEN_LIFESPAN_MINUTES=43200
 # Secret pour la protection CSRF
 CSRF_SECRET=CHANGE_ME
 
+# Sel statique pour le hachage des numéros de carte
+STATIC_SALT=CHANGE_ME
+
 # Activer les logs formatés (true/false)
 # Si faux, les logs seront en JSON
 PRETTY_LOGS=true

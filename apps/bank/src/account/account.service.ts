@@ -10,15 +10,22 @@ import { Model } from 'mongoose';
 import { Payment, PaymentDocument } from './payment.schema';
 import * as bcrypt from 'bcrypt';
 import { AccountDto } from './dto/account.dto';
+import { pbkdf2Sync } from 'crypto';
 
 @Injectable()
 export class AccountService {
     constructor(
         @InjectModel(Account.name) private accountModel: Model<AccountDocument>,
         @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
-    ) {}
+    ) {
+        if (!this.STATIC_SALT) throw new Error('STATIC_SALT is not defined');
+    }
 
     private readonly logger = new Logger(AccountService.name);
+    private ITERATIONS = 100000;
+    private KEY_LEN = 64;
+    private DIGEST = 'sha512';
+    private STATIC_SALT = process.env.STATIC_SALT;
 
     /**
      * Creates a new account with the provided details. The account details are hashed before storage for security.
@@ -46,9 +53,17 @@ export class AccountService {
      * @throws BadRequestException if the credentials are invalid, the account is not found, or there are insufficient funds.
      */
     async pay(dto: AccountDto, amount: number): Promise<PaymentDocument> {
+        const hashedCardNumber = pbkdf2Sync(
+            dto.cardNumber,
+            this.STATIC_SALT!,
+            this.ITERATIONS,
+            this.KEY_LEN,
+            this.DIGEST,
+        ).toString('hex');
         const account = await this.accountModel.findOne({
-            cardNumber: Number.parseInt(dto.cardNumber),
+            cardNumber: hashedCardNumber,
         });
+
         if (!account) {
             throw new NotFoundException('Account not found');
         }
@@ -104,37 +119,37 @@ export class AccountService {
     async seedAccounts(): Promise<void> {
         const accounts = [
             {
-                cardNumber: 1234567812345678,
+                cardNumber: '1234567812345678',
                 expirationDate: '12/25',
                 cvv: '123',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
-                cardNumber: 8765432187654321,
+                cardNumber: '8765432187654321',
                 expirationDate: '11/24',
                 cvv: '456',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
-                cardNumber: 4000000000000002,
+                cardNumber: '4000000000000002',
                 expirationDate: '10/26',
                 cvv: '789',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
-                cardNumber: 4111111111111111,
+                cardNumber: '4111111111111111',
                 expirationDate: '09/27',
                 cvv: '321',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
-                cardNumber: 5555555555554444,
+                cardNumber: '5555555555554444',
                 expirationDate: '08/28',
                 cvv: '654',
                 balance: Math.floor(Math.random() * 10000),
             },
             {
-                cardNumber: 5105105105105100,
+                cardNumber: '5105105105105100',
                 expirationDate: '07/29',
                 cvv: '987',
                 balance: Math.floor(Math.random() * 10000),
@@ -143,8 +158,15 @@ export class AccountService {
 
         let count = 0;
         for (const acc of accounts) {
+            const hashedCardNumber = pbkdf2Sync(
+                acc.cardNumber,
+                this.STATIC_SALT!,
+                this.ITERATIONS,
+                this.KEY_LEN,
+                this.DIGEST,
+            ).toString('hex');
             const existing = await this.accountModel
-                .findOne({ cardNumber: acc.cardNumber })
+                .findOne({ cardNumber: hashedCardNumber })
                 .exec();
             if (!existing) {
                 const account = new this.accountModel(acc);

@@ -57,7 +57,6 @@ export const UseAuthFetch = () => {
             // Handle CSRF token refresh
             if (err instanceof Error && err.message === 'Invalid CSRF Token. Please get a new one at /csrf-token and try again.') {
                 const baseUrl = new URL(url).origin;
-                console.log(baseUrl)
 
                 const csrfRes = await fetch(`${baseUrl}/csrf-token`, {
                     method: 'GET',

@@ -35,7 +35,7 @@ function App() {
                         await fetch(`${API_URL}/auth/logout`, {
                             method: 'POST',
                             credentials: 'include',
-                        })
+                        });
                         return redirect('/signin');
                     },
                 },
@@ -57,6 +57,19 @@ function App() {
                     handle: { title: "S'inscrire" },
                 },
                 {
+                    path: 'donate',
+                    children: [
+                        {
+                            index: true,
+                            element: <DonatePage />,
+                        },
+                        {
+                            path: 'success',
+                            element: <DonationSucessPage />,
+                        },
+                    ],
+                },
+                {
                     loader: protectedMiddleware,
                     element: <AuthRoutes />,
                     children: [
@@ -74,19 +87,6 @@ function App() {
                                 {
                                     path: '/admin',
                                     element: <AdminDashboard />,
-                                },
-                            ],
-                        },
-                        {
-                            path: 'donate',
-                            children: [
-                                {
-                                    index: true,
-                                    element: <DonatePage />,
-                                },
-                                {
-                                    path: 'success',
-                                    element: <DonationSucessPage />,
                                 },
                             ],
                         },

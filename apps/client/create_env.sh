@@ -22,6 +22,9 @@ cat > "$ENV_PATH" <<'EOF'
 
 # URL de l’API backend
 VITE_APIURL="https://localhost:3000"
+
+# URL de l’API bank
+VITE_BANKURL="https://localhost:4000"
 EOF
 
 chmod 600 "$ENV_PATH" || true
