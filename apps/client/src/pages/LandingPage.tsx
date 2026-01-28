@@ -8,7 +8,7 @@ export const LandingPage = () => {
     const [stats, setStats] = useState<{ users: number; posts: number; comments: number } | null>(
         null,
     );
-    const [_, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
 
     useEffect(() => {
         let mounted = true;
